@@ -4,13 +4,64 @@ class App extends React.Component {
     constructor() {
         super();
         this.state = {
-            property: "value"
+            red: 94,
+            green: 36,
+            blue: 102,
+            previousColors: []
         }
-        //this.NChange = this.NChange.bind(this);
+        this.changeColor = this.changeColor.bind(this);
+    }
+
+    changeColor() {
+        let thePreviousColors = this.state.previousColors
+        function randomInteger(min, max) {
+            let range = max - min + 1
+            return Math.floor(range*(Math.random())) + min
+        }
+        let theColors = [
+            {red: 28, green: 29, blue: 50},     //default
+            {red: 23, green: 21, blue: 26},     //black
+            {red: 73, green: 9, blue: 9},       //red
+            {red: 239, green: 90, blue: 173},    //pink
+            {red: 25, green: 60, blue: 9},      //green
+            {red: 49, green: 115, blue: 198}      //blue
+        ]
+
+        let availableColors = []
+        for (let i = 0; i < 6; i++) {
+            if (!thePreviousColors.includes(i)) {
+                availableColors.push(i)
+            }
+        }
+
+        let chosenColorIndex = availableColors[randomInteger(0, availableColors.length - 1)]
+
+        thePreviousColors.push(chosenColorIndex)
+        if (thePreviousColors.length<3) {
+            this.setState({
+                previousColors: thePreviousColors
+            })
+        } else {
+            this.setState({
+                previousColors: thePreviousColors.slice(1,thePreviousColors.length)
+            })
+        }
+
+        this.setState({
+            red: theColors[chosenColorIndex].red,
+            green: theColors[chosenColorIndex].green,
+            blue: theColors[chosenColorIndex].blue
+        })
     }
 
     render() {
-        return <div id="the-div"></div>
+        return (
+            <div
+                id="the-div"
+                style={{backgroundColor: `rgb(${this.state.red},${this.state.green},${this.state.blue})`}}
+                onClick={this.changeColor}
+            />
+        )
     }
 }
 
