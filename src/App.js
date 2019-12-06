@@ -19,8 +19,8 @@ class App extends React.Component {
             return Math.floor(range*(Math.random())) + min
         }
         let theColors = [
-            {red: 28, green: 29, blue: 50},     //default
-            {red: 23, green: 21, blue: 26},     //black
+            {red: 44, green: 44, blue: 88},     //default
+            {red: 0, green: 0, blue: 0},     //black
             {red: 73, green: 9, blue: 9},       //red
             {red: 239, green: 90, blue: 173},    //pink
             {red: 25, green: 60, blue: 9},      //green
