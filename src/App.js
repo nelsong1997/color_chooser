@@ -7,17 +7,38 @@ class App extends React.Component {
             red: 94,
             green: 36,
             blue: 102,
-            previousColors: []
+            previousColors: [],
+            theInterval: null
         }
         this.changeColor = this.changeColor.bind(this);
     }
 
+    componentDidMount() {               //setting up a color shifting wait screen
+        let redT = randomInteger(0, 100)   //initial values for the variable; sin of this variable will be the color value
+        let greenT = randomInteger(0, 100)
+        let blueT = randomInteger(0, 100)
+        let redRate = randomInteger(0, 100)/10000 + 0.005 //how fast this color value changes
+        let greenRate = randomInteger(0, 100)/10000 + 0.005
+        let blueRate = randomInteger(0, 100)/10000 + 0.005
+
+        let theInterval = setInterval(()=>{
+            redT = redT + redRate
+            greenT = greenT + greenRate
+            blueT = blueT + blueRate
+            this.setState(
+                {
+                    red: Math.floor((Math.sin(redT))*128 + 128), //sin is used to avoid rapid shift from 255 to 0
+                    green: Math.floor((Math.sin(greenT))*128 + 128),
+                    blue: Math.floor((Math.sin(blueT))*128 + 128)
+                }
+            )
+        }, 17)
+        this.setState({theInterval: theInterval})
+    }
+
     changeColor() {
+        clearInterval(this.state.theInterval)
         let thePreviousColors = this.state.previousColors
-        function randomInteger(min, max) {
-            let range = max - min + 1
-            return Math.floor(range*(Math.random())) + min
-        }
         let theColors = [
             {red: 44, green: 44, blue: 88},     //default
             {red: 0, green: 0, blue: 0},     //black
@@ -63,6 +84,13 @@ class App extends React.Component {
             />
         )
     }
+}
+
+//----helper functions----//
+
+function randomInteger(min, max) {
+    let range = max - min + 1
+    return Math.floor(range*(Math.random())) + min
 }
 
 export default App;
