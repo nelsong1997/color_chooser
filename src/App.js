@@ -8,35 +8,18 @@ class App extends React.Component {
             green: 36,
             blue: 102,
             previousColors: [],
-            theInterval: null
+            theInterval: null,
+            theTimeout: null
         }
         this.changeColor = this.changeColor.bind(this);
     }
 
-    componentDidMount() {               //setting up a color shifting wait screen
-        let redT = randomInteger(0, 100)   //initial values for the variable; sin of this variable will be the color value
-        let greenT = randomInteger(0, 100)
-        let blueT = randomInteger(0, 100)
-        let redRate = randomInteger(0, 100)/10000 + 0.005 //how fast this color value changes
-        let greenRate = randomInteger(0, 100)/10000 + 0.005
-        let blueRate = randomInteger(0, 100)/10000 + 0.005
-
-        let theInterval = setInterval(()=>{
-            redT = redT + redRate
-            greenT = greenT + greenRate
-            blueT = blueT + blueRate
-            this.setState(
-                {
-                    red:   Math.floor((Math.sin(redT))*128 + 128), //sin is used to avoid rapid shift from 255 to 0
-                    green: Math.floor((Math.sin(greenT))*128 + 128),
-                    blue:  Math.floor((Math.sin(blueT))*128 + 128)
-                }
-            )
-        }, 17)
-        this.setState({theInterval: theInterval})
+    componentDidMount() {
+        this.surfColors()
     }
 
-    changeColor() {
+    mouseUp() {
+        clearTimeout(this.state.theTimeout)
         clearInterval(this.state.theInterval)
         let thePreviousColors = this.state.previousColors
         let theColors = [
@@ -75,8 +58,35 @@ class App extends React.Component {
         })
     }
 
-    startClickTimer() {
-        
+    mouseDown() {
+        let theTimeout = setTimeout(() => {
+            this.setState({previousColors: []})
+            this.surfColors()
+        }, 3000)
+        this.setState({theTimeout: theTimeout})
+    }
+
+    surfColors() {                          //setting up a color shifting wait screen
+        let redT = randomInteger(0, 100)   //initial values for the variable; sin of this variable will be the color value
+        let greenT = randomInteger(0, 100)
+        let blueT = randomInteger(0, 100)
+        let redRate = randomInteger(0, 100)/10000 + 0.005 //how fast this color value changes
+        let greenRate = randomInteger(0, 100)/10000 + 0.005
+        let blueRate = randomInteger(0, 100)/10000 + 0.005
+
+        let theInterval = setInterval(()=>{
+            redT = redT + redRate
+            greenT = greenT + greenRate
+            blueT = blueT + blueRate
+            this.setState(
+                {
+                    red:   Math.floor((Math.sin(redT))*128 + 128), //sin is used to avoid rapid shift from 255 to 0
+                    green: Math.floor((Math.sin(greenT))*128 + 128),
+                    blue:  Math.floor((Math.sin(blueT))*128 + 128)
+                }
+            )
+        }, 17)
+        this.setState({theInterval: theInterval})
     }
 
     render() {
@@ -84,8 +94,8 @@ class App extends React.Component {
             <div
                 id="the-div"
                 style={{backgroundColor: `rgb(${this.state.red},${this.state.green},${this.state.blue})`}}
-                onMouseUp={this.changeColor}
-                onMouseDown={this.startClickTimer}
+                onMouseUp={this.mouseUp}
+                onMouseDown={this.mouseDown}
             />
         )
     }
