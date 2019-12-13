@@ -27,9 +27,9 @@ class App extends React.Component {
             blueT = blueT + blueRate
             this.setState(
                 {
-                    red: Math.floor((Math.sin(redT))*128 + 128), //sin is used to avoid rapid shift from 255 to 0
+                    red:   Math.floor((Math.sin(redT))*128 + 128), //sin is used to avoid rapid shift from 255 to 0
                     green: Math.floor((Math.sin(greenT))*128 + 128),
-                    blue: Math.floor((Math.sin(blueT))*128 + 128)
+                    blue:  Math.floor((Math.sin(blueT))*128 + 128)
                 }
             )
         }, 17)
@@ -40,12 +40,12 @@ class App extends React.Component {
         clearInterval(this.state.theInterval)
         let thePreviousColors = this.state.previousColors
         let theColors = [
-            {red: 44, green: 44, blue: 88},     //default
-            {red: 0, green: 0, blue: 0},     //black
-            {red: 73, green: 9, blue: 9},       //red
-            {red: 239, green: 90, blue: 173},    //pink
-            {red: 25, green: 60, blue: 9},      //green
-            {red: 49, green: 115, blue: 198}      //blue
+            {red: 44,  green: 44,  blue: 88 },     //default
+            {red: 0,   green: 0,   blue: 0  },     //black
+            {red: 73,  green: 9,   blue: 9  },     //red
+            {red: 239, green: 90,  blue: 173},     //pink
+            {red: 25,  green: 60,  blue: 9  },     //green
+            {red: 49,  green: 115, blue: 198}      //blue
         ]
 
         let availableColors = []
@@ -75,12 +75,17 @@ class App extends React.Component {
         })
     }
 
+    startClickTimer() {
+        
+    }
+
     render() {
         return (
             <div
                 id="the-div"
                 style={{backgroundColor: `rgb(${this.state.red},${this.state.green},${this.state.blue})`}}
-                onClick={this.changeColor}
+                onMouseUp={this.changeColor}
+                onMouseDown={this.startClickTimer}
             />
         )
     }
@@ -94,3 +99,17 @@ function randomInteger(min, max) {
 }
 
 export default App;
+
+//----------planned features-------------//
+
+//  options menu
+//      *help
+//      *custom color rotation
+//      *random color
+//          *random color within range
+//      *show color name
+//      *show color value
+//      *pseudo random toggle
+//          *pseudo random # of previous choices excluded
+//  reset function
+//  cookies to save settings
