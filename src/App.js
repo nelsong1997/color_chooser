@@ -9,8 +9,11 @@ class App extends React.Component {
             blue: 102,
             previousColors: [],
             colorSurfInterval: null,
-            theTimeout: null,
-            hasBeenReset: false
+            resetTimeout: null,
+            optionsTimeout: null,
+            hasBeenReset: false,
+            surfingColors: true,
+            optionsOpen: false
         }
         this.mouseUp = this.mouseUp.bind(this);
         this.mouseDown = this.mouseDown.bind(this);
@@ -22,22 +25,20 @@ class App extends React.Component {
     }
 
     mouseDown() {
-        let theTimeout = setTimeout(() => {
-            this.setState({previousColors: [], hasBeenReset: true}) //reset
-            this.surfColors({
-                red: this.state.red,
-                green: this.state.green,
-                blue: this.state.blue
-            })
-        }, 2000)                                    //hold for 2 secs to reset
-        this.setState({theTimeout: theTimeout})
+        if (!this.state.surfingColors && !this.state.optionsOpen) {
+            this.resetTimeout()
+        } else if (this.state.surfingColors && !this.state.optionsOpen) {
+            this.optionsTimeout()
+        }
     }
 
     mouseUp() {
         this.setState({hasBeenReset: false})
-        clearTimeout(this.state.theTimeout)
-        if (!this.state.hasBeenReset) {
+        clearTimeout(this.state.resetTimeout)
+        clearTimeout(this.state.optionsTimeout)
+        if (!this.state.hasBeenReset && !this.state.optionsOpen) {
             clearInterval(this.state.colorSurfInterval)
+            this.setState({surfingColors: false})
             this.changeColor()
         }
     }
@@ -53,16 +54,16 @@ class App extends React.Component {
             {red: 49,  green: 115, blue: 198}      //blue
         ]
 
-        let availableColors = []
+        let availableColors = [] //specifying which colors are viable to choose
         for (let i = 0; i < 6; i++) {
             if (!thePreviousColors.includes(i)) {
                 availableColors.push(i)
             }
         }
 
-        let chosenColorIndex = availableColors[randomInteger(0, availableColors.length - 1)]
+        let chosenColorIndex = availableColors[randomInteger(0, availableColors.length - 1)] //choosing a new color to change to
 
-        thePreviousColors.push(chosenColorIndex)
+        thePreviousColors.push(chosenColorIndex) //updating previous colors array in state
         if (thePreviousColors.length<3) {
             this.setState({
                 previousColors: thePreviousColors
@@ -73,7 +74,7 @@ class App extends React.Component {
             })
         }
 
-        this.setState({
+        this.setState({ //changing the color
             red: theColors[chosenColorIndex].red,
             green: theColors[chosenColorIndex].green,
             blue: theColors[chosenColorIndex].blue
@@ -81,6 +82,7 @@ class App extends React.Component {
     }
 
     surfColors(colorInputObject) {                          //setting up a color shifting wait screen
+        this.setState({surfingColors: true})
         let redT = randomInteger(0, 100)   //initial values for the variable; sin of this variable will be the color value
         let greenT = randomInteger(0, 100)
         let blueT = randomInteger(0, 100)
@@ -104,8 +106,56 @@ class App extends React.Component {
                     blue:  Math.floor((Math.sin(blueT))*128 + 128)
                 }
             )
-        }, 17)
+        }, 16.67) //60hz
         this.setState({colorSurfInterval: colorSurfInterval})
+    }
+
+    resetTimeout() {
+        let resetTimeout = setTimeout(() => {
+            this.setState({previousColors: [], hasBeenReset: true}) //reset
+            this.surfColors({
+                red: this.state.red,
+                green: this.state.green,
+                blue: this.state.blue
+            })
+        }, 1000)                                    //hold for 1 sec to reset
+        this.setState({resetTimeout: resetTimeout})
+    }
+
+    optionsTimeout() {
+        let optionsTimeout = setTimeout(() => {
+            clearInterval(this.state.colorSurfInterval)
+            this.setState({optionsOpen: true, surfingColors: false}) //open em up
+            this.openOptions()
+        }, 1000)                                    //hold for 1 sec to open
+        this.setState({optionsTimeout: optionsTimeout})
+    }
+
+    openOptions() {
+        let initRed = this.state.red
+        let initGreen = this.state.green
+        let initBlue = this.state.blue
+
+        let redRate = Math.floor(initRed/60) + 1
+        let greenRate = Math.floor(initGreen/60) + 1
+        let blueRate = Math.floor(initBlue/60) + 1
+
+        let openOptionsInterval = setInterval(()=>{
+            if (this.state.red > 0 || this.state.green > 0 || this.state.blue > 0) {
+                this.setState({
+                    red: this.state.red - redRate,
+                    green: this.state.green - greenRate,
+                    blue: this.state.blue - blueRate
+                })
+            } else {
+                clearInterval(openOptionsInterval)
+                this.setState({
+                    red: 0,
+                    green: 0, 
+                    blue: 0
+                })
+            }
+        }, 16.67)
     }
 
     render() {
@@ -131,7 +181,7 @@ export default App;
 
 //----------planned features-------------//
 
-//  options menu
+//  Xoptions menu
 //      *help
 //      *custom color rotation
 //      *random color
@@ -140,5 +190,5 @@ export default App;
 //      *show color value
 //      *pseudo random toggle
 //          *pseudo random # of previous choices excluded
-//  reset function
-//  cookies to save settings
+//  Xreset function
+//  *cookies to save settings
