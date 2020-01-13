@@ -13,11 +13,20 @@ class App extends React.Component {
             optionsTimeout: null,
             hasBeenReset: false,
             surfingColors: true,
-            optionsOpen: false
+            optionsOpen: false,
+            theColors: [
+                {red: 44,  green: 44,  blue: 88 },     //default/indigo
+                {red: 0,   green: 0,   blue: 0  },     //black
+                {red: 73,  green: 9,   blue: 9  },     //red
+                {red: 239, green: 90,  blue: 173},     //pink
+                {red: 25,  green: 60,  blue: 9  },     //green
+                {red: 49,  green: 115, blue: 198}      //blue
+            ]
         }
         this.mouseUp = this.mouseUp.bind(this);
         this.mouseDown = this.mouseDown.bind(this);
         this.changeColor = this.changeColor.bind(this);
+        this.closeOptions = this.closeOptions.bind(this);
     }
 
     componentDidMount() {
@@ -45,17 +54,9 @@ class App extends React.Component {
 
     changeColor() {
         let thePreviousColors = this.state.previousColors
-        let theColors = [
-            {red: 44,  green: 44,  blue: 88 },     //default/indigo
-            {red: 0,   green: 0,   blue: 0  },     //black
-            {red: 73,  green: 9,   blue: 9  },     //red
-            {red: 239, green: 90,  blue: 173},     //pink
-            {red: 25,  green: 60,  blue: 9  },     //green
-            {red: 49,  green: 115, blue: 198}      //blue
-        ]
-
+        let theColors = this.state.theColors
         let availableColors = [] //specifying which colors are viable to choose
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i < theColors.length; i++) {
             if (!thePreviousColors.includes(i)) {
                 availableColors.push(i)
             }
@@ -158,6 +159,46 @@ class App extends React.Component {
         }, 16.67)
     }
 
+    optionsMenu(optionsOpen, theColors) {
+        if (!optionsOpen) {
+            return null
+        } else {
+            let colorArray = []
+            let i = 0
+            for (let color of theColors) {
+                colorArray.push(
+                    <div key={i}>
+                        <label style={{color: `rgb(${color.red},${color.green},${color.blue})`}}>Color {i+1}</label>
+                    </div>
+                )
+                i++;
+            }
+            return ( 
+                <div id="options-menu">
+                    <div id="the-x-div">
+                        <svg id="the-x" viewBox="0 0 10 10" onClick={this.closeOptions}>                    {/* this is the x to get out of the options*/}
+                            <polygon points="1,2 2,1 9,8 8,9" style={{fill: "white", stroke: "white", strokeWidth: "1"}}/>
+                            <polygon points="9,2 8,1 1,8 2,9" style={{fill: "white", stroke: "white", strokeWidth: "1"}} />
+                        </svg>
+                    </div>
+                    <h2>Options</h2>
+                    <h3>Colors</h3>
+                    {colorArray}
+                </div>
+            )
+        }
+    }
+
+    closeOptions() {
+        this.setState( {optionsOpen: false} )
+        let black = {
+            red: 0,
+            green: 0,
+            blue: 0
+        }
+        this.surfColors(black)
+    }
+
     render() {
         return (
             <div
@@ -165,7 +206,9 @@ class App extends React.Component {
                 style={{backgroundColor: `rgb(${this.state.red},${this.state.green},${this.state.blue})`}}
                 onMouseUp={this.mouseUp}
                 onMouseDown={this.mouseDown}
-            />
+            >
+                {this.optionsMenu(this.state.optionsOpen, this.state.theColors)}
+            </div>
         )
     }
 }
