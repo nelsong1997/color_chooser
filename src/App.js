@@ -15,18 +15,24 @@ class App extends React.Component {
             surfingColors: true,
             optionsOpen: false,
             theColors: [
-                {red: 44,  green: 44,  blue: 88 },     //default/indigo
-                {red: 0,   green: 0,   blue: 0  },     //black
-                {red: 73,  green: 9,   blue: 9  },     //red
-                {red: 239, green: 90,  blue: 173},     //pink
-                {red: 25,  green: 60,  blue: 9  },     //green
-                {red: 49,  green: 115, blue: 198}      //blue
-            ]
+                {red: 44,  green: 44,  blue: 88,  name: "indigo"},
+                {red: 0,   green: 0,   blue: 0,   name: "black" },
+                {red: 158, green: 20,  blue: 20,  name: "red"   },
+                {red: 239, green: 90,  blue: 173, name: "pink"  },
+                {red: 25,  green: 60,  blue: 9,   name: "green" },
+                {red: 49,  green: 115, blue: 198, name: "blue"  }
+            ],
+            currentColor: 0
         }
+
         this.mouseUp = this.mouseUp.bind(this);
         this.mouseDown = this.mouseDown.bind(this);
         this.changeColor = this.changeColor.bind(this);
         this.closeOptions = this.closeOptions.bind(this);
+        this.deleteColor = this.deleteColor.bind(this);
+        this.openDeleteDialog = this.openDeleteDialog.bind(this);
+
+        this.deleteDialog = React.createRef();
     }
 
     componentDidMount() {
@@ -137,9 +143,9 @@ class App extends React.Component {
         let initGreen = this.state.green
         let initBlue = this.state.blue
 
-        let redRate = Math.floor(initRed/60) + 1
-        let greenRate = Math.floor(initGreen/60) + 1
-        let blueRate = Math.floor(initBlue/60) + 1
+        let redRate = Math.floor(initRed/30) + 1
+        let greenRate = Math.floor(initGreen/30) + 1
+        let blueRate = Math.floor(initBlue/30) + 1
 
         let openOptionsInterval = setInterval(()=>{
             if (this.state.red > 0 || this.state.green > 0 || this.state.blue > 0) {
@@ -167,8 +173,28 @@ class App extends React.Component {
             let i = 0
             for (let color of theColors) {
                 colorArray.push(
-                    <div key={i}>
-                        <label style={{color: `rgb(${color.red},${color.green},${color.blue})`}}>Color {i+1}</label>
+                    <div key={i} className="color-item">
+                        <div className="color-item-inner">
+                            <label style={{color: "white"}}><strong>color {i+1}</strong></label>
+                            <svg className="color-box" viewBox="0 0 10 5">                    {/*a little box to show what the color is*/}
+                                <polygon points="0,0 10,0 10,5 0,5" style={{fill: `rgb(${color.red},${color.green},${color.blue})`, stroke: "white", strokeWidth: "1"}}/>
+                            </svg>
+                            <label style={{
+                                color: `rgb(${color.red},${color.green},${color.blue})`,
+                                textShadow: "-1px 0 white, 0 1px white, 1px 0 white, 0 -1px white"
+                            }}>
+                                <strong>{color.name}</strong>
+                            </label>
+                        </div>
+                        <div className="color-item-inner">
+                            <svg className="edit-button" viewBox="0 0 10 10" onClick={()=>{}}>                    {/* this is the pencil icon for editing*/}
+                                <polygon points="1,9 2,7 8,1 9,2 3,8" style={{fill: "green", stroke: "green", strokeWidth: "1"}}/>
+                            </svg>
+                            <svg id={"red-x-" + i} className="red-x" viewBox="0 0 10 10" onClick={this.openDeleteDialog}>                    {/* this is the x to remove a color*/}
+                                <polygon id={i} points="1,2 2,1 9,8 8,9" style={{fill: "red", stroke: "red", strokeWidth: "1"}}/>
+                                <polygon id={i} points="9,2 8,1 1,8 2,9" style={{fill: "red", stroke: "red", strokeWidth: "1"}} />
+                            </svg>
+                        </div>
                     </div>
                 )
                 i++;
@@ -181,8 +207,8 @@ class App extends React.Component {
                             <polygon points="9,2 8,1 1,8 2,9" style={{fill: "white", stroke: "white", strokeWidth: "1"}} />
                         </svg>
                     </div>
-                    <h2>Options</h2>
-                    <h3>Colors</h3>
+                    <h1>Options</h1>
+                    <h2>Colors</h2>
                     {colorArray}
                 </div>
             )
@@ -199,7 +225,21 @@ class App extends React.Component {
         this.surfColors(black)
     }
 
+    openDeleteDialog(event) {
+        console.log(Number(event.target.id.slice(-1)))
+        this.setState( {currentColor: Number(event.target.id.slice(-1))} )
+        this.deleteDialog.current.showModal();
+    }
+
+    deleteColor() {
+        let colorNumber = this.state.currentColor
+        let theColors = this.state.theColors
+        theColors.splice(colorNumber, 1)
+        this.setState( {theColors: theColors} )
+    }
+
     render() {
+        let color = this.state.theColors[this.state.currentColor]
         return (
             <div
                 id="the-div"
@@ -208,6 +248,16 @@ class App extends React.Component {
                 onMouseDown={this.mouseDown}
             >
                 {this.optionsMenu(this.state.optionsOpen, this.state.theColors)}
+                <dialog id="delete-dialog" ref={this.deleteDialog}>
+                    <form method="dialog">
+                        <h4>Are you sure you want to delete "{color.name}"????</h4>
+                        <p>r: {color.red} g: {color.green} b: {color.blue}</p>
+                        <menu>
+                            <button value="cancel">cancel</button>
+                            <button id="confirm" value="default" onClick={this.deleteColor}>delete</button>
+                        </menu>
+                    </form>
+                </dialog>
             </div>
         )
     }
@@ -233,5 +283,6 @@ export default App;
 //      *show color value
 //      *pseudo random toggle
 //          *pseudo random # of previous choices excluded
+//      *text display
 //  Xreset function
 //  *cookies to save settings
