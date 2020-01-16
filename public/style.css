@@ -79,3 +79,20 @@ menu {
     padding: 0px;
     margin: 0px;
 }
+
+.options-section {
+    margin-top: 10px;
+    margin-left: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+.indented {
+    margin-left: 20px;
+    margin-top: 5px;
+}
+
+.num-input {
+    width: 40px;
+    margin-left: 5px;
+}
