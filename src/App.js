@@ -32,6 +32,8 @@ class App extends React.Component {
         this.touchEnd = this.touchEnd.bind(this);
         this.mouseDown = this.mouseDown.bind(this);
         this.mouseUp = this.mouseUp.bind(this);
+        this.beginClick = this.beginClick.bind(this);
+        this.endClick = this.endClick.bind(this);
         this.changeColor = this.changeColor.bind(this);
         this.closeOptions = this.closeOptions.bind(this);
         this.deleteColor = this.deleteColor.bind(this);
@@ -46,14 +48,14 @@ class App extends React.Component {
 
     mouseDown() {
         if (this.state.clickMode==="click") {
-            this.touchStart()
+            this.beginClick()
             console.log("mouse down")
         }
     }
 
     mouseUp() {
         if (this.state.clickMode==="click") {
-            this.touchEnd()
+            this.endClick()
             console.log("mouse up")
         }
     }
@@ -61,6 +63,15 @@ class App extends React.Component {
     touchStart() {
         this.setState( {clickMode: "touch"} )
         console.log("touch start")
+        this.beginClick()
+    }
+    
+    touchEnd() {
+        console.log("touch end")
+        this.endClick()
+    }
+
+    beginClick() {
         if (!this.state.surfingColors && !this.state.optionsOpen) {
             this.resetTimeout()
         } else if (this.state.surfingColors && !this.state.optionsOpen) {
@@ -68,8 +79,7 @@ class App extends React.Component {
         }
     }
 
-    touchEnd() {
-        console.log("touch end")
+    endClick() {
         this.setState({hasBeenReset: false})
         clearTimeout(this.state.resetTimeout)
         clearTimeout(this.state.optionsTimeout)
@@ -94,7 +104,9 @@ class App extends React.Component {
                 }
             }
         } else {
-            availableColors = theColors //all colors are ok if PR is off
+            for (let i = 0; i < theColors.length; i++) { //all colors are ok if PR is off
+                availableColors.push(i)
+            }
         }
 
         let chosenColorIndex = availableColors[randomInteger(0, availableColors.length - 1)] //choosing a new color to change to
@@ -117,7 +129,7 @@ class App extends React.Component {
             green: theColors[chosenColorIndex].green,
             blue: theColors[chosenColorIndex].blue
         })
-        console.log("color changed")
+        console.log("color changed to " + theColors[chosenColorIndex].name)
     }
 
     surfColors(colorInputObject) {                    //setting up a color shifting wait screen; starts from color that is input, if there is one
