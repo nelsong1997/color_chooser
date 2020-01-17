@@ -24,26 +24,47 @@ class App extends React.Component {
             ],
             currentColor: 0,
             pseudoRandom: true,
-            pseudoRandomCount: 2
+            pseudoRandomCount: 2,
+            clickMode: "click"
         }
 
-        this.mouseUp = this.mouseUp.bind(this);
+        this.touchStart = this.touchStart.bind(this);
+        this.touchEnd = this.touchEnd.bind(this);
         this.mouseDown = this.mouseDown.bind(this);
+        this.mouseUp = this.mouseUp.bind(this);
         this.changeColor = this.changeColor.bind(this);
         this.closeOptions = this.closeOptions.bind(this);
         this.deleteColor = this.deleteColor.bind(this);
         this.openDeleteDialog = this.openDeleteDialog.bind(this);
         this.pseudoRandomCheckChange = this.pseudoRandomCheckChange.bind(this);
         this.pseudoRandomCountChange = this.pseudoRandomCountChange.bind(this);
+        this.touchStart = this.touchStart.bind(this);
 
         this.deleteDialog = React.createRef();
     }
 
     componentDidMount() {
         this.surfColors()
+        this.deleteDialog.current.close()
     }
 
     mouseDown() {
+        if (this.state.clickMode==="click") {
+            this.touchStart()
+            console.log("mouse down")
+        }
+    }
+
+    mouseUp() {
+        if (this.state.clickMode==="click") {
+            this.touchEnd()
+            console.log("mouse up")
+        }
+    }
+
+    touchStart() {
+        this.setState( {clickMode: "touch"} )
+        console.log("touch start")
         if (!this.state.surfingColors && !this.state.optionsOpen) {
             this.resetTimeout()
         } else if (this.state.surfingColors && !this.state.optionsOpen) {
@@ -51,7 +72,8 @@ class App extends React.Component {
         }
     }
 
-    mouseUp() {
+    touchEnd() {
+        console.log("touch end")
         this.setState({hasBeenReset: false})
         clearTimeout(this.state.resetTimeout)
         clearTimeout(this.state.optionsTimeout)
@@ -99,6 +121,7 @@ class App extends React.Component {
             green: theColors[chosenColorIndex].green,
             blue: theColors[chosenColorIndex].blue
         })
+        console.log("color changed")
     }
 
     surfColors(colorInputObject) {                    //setting up a color shifting wait screen; starts from color that is input, if there is one
@@ -189,11 +212,11 @@ class App extends React.Component {
                 let redX;
                 if (theColors.length===1) {
                     redX = [
-                        <svg id={"red-x-" + i} className="red-x" viewBox="0 0 10 10"></svg> //empty transparent box where x would go--we can't delete our last color!
+                        <svg id={"red-x-" + i} className="red-x" viewBox="0 0 10 10" key="0"></svg> //empty transparent box where x would go--we can't delete our last color!
                     ]
                 } else {
                     redX = [
-                        <svg id={"red-x-" + i} className="red-x" viewBox="0 0 10 10" onClick={this.openDeleteDialog}>    {/* this is the x to remove a color*/}
+                        <svg id={"red-x-" + i} className="red-x" viewBox="0 0 10 10" onClick={this.openDeleteDialog} key="0">    {/* this is the x to remove a color*/}
                             <polygon id={i} points="1,2 2,1 9,8 8,9" style={{fill: "red", stroke: "red", strokeWidth: "1"}}/>
                             <polygon id={i} points="9,2 8,1 1,8 2,9" style={{fill: "red", stroke: "red", strokeWidth: "1"}} />
                         </svg>
@@ -227,7 +250,7 @@ class App extends React.Component {
             let pseudoRandomCountSection; //we want to hide this section if PR is disabled
             if (pseudoRandom) {
                 pseudoRandomCountSection = [
-                    <label className="indented"># of excluded colors: 
+                    <label className="indented" key="0"># of excluded colors: 
                         <input 
                             type="number" className="num-input" name="pseudo-random-count" //needs a check for posint in range
                             min="1" max={this.state.theColors.length - 1}
@@ -308,8 +331,11 @@ class App extends React.Component {
             <div
                 id="the-div"
                 style={{backgroundColor: `rgb(${this.state.red},${this.state.green},${this.state.blue})`}}
-                onMouseUp={this.mouseUp}
                 onMouseDown={this.mouseDown}
+                onMouseUp={this.mouseUp}
+                onTouchStart={this.touchStart}
+                onTouchEnd={this.touchEnd}
+                onTouchCancel={this.touchCancel}
             >
                 {this.optionsMenu(this.state.optionsOpen, this.state.theColors)}
                 <dialog id="delete-dialog" ref={this.deleteDialog}>
