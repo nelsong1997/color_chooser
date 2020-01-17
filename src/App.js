@@ -35,17 +35,13 @@ class App extends React.Component {
         this.changeColor = this.changeColor.bind(this);
         this.closeOptions = this.closeOptions.bind(this);
         this.deleteColor = this.deleteColor.bind(this);
-        this.openDeleteDialog = this.openDeleteDialog.bind(this);
         this.pseudoRandomCheckChange = this.pseudoRandomCheckChange.bind(this);
         this.pseudoRandomCountChange = this.pseudoRandomCountChange.bind(this);
         this.touchStart = this.touchStart.bind(this);
-
-        this.deleteDialog = React.createRef();
     }
 
     componentDidMount() {
         this.surfColors()
-        this.deleteDialog.current.close()
     }
 
     mouseDown() {
@@ -216,7 +212,7 @@ class App extends React.Component {
                     ]
                 } else {
                     redX = [
-                        <svg id={"red-x-" + i} className="red-x" viewBox="0 0 10 10" onClick={this.openDeleteDialog} key="0">    {/* this is the x to remove a color*/}
+                        <svg id={"red-x-" + i} className="red-x" viewBox="0 0 10 10" onClick={this.deleteColor} key="0">    {/* this is the x to remove a color*/}
                             <polygon id={i} points="1,2 2,1 9,8 8,9" style={{fill: "red", stroke: "red", strokeWidth: "1"}}/>
                             <polygon id={i} points="9,2 8,1 1,8 2,9" style={{fill: "red", stroke: "red", strokeWidth: "1"}} />
                         </svg>
@@ -293,17 +289,12 @@ class App extends React.Component {
         }
         this.surfColors(black)
     }
-
-    openDeleteDialog(event) {
-        this.setState( {currentColor: Number(event.target.id.slice(-1))} )
-        this.deleteDialog.current.showModal();
-    }
-
-    deleteColor() {
-        let colorNumber = this.state.currentColor
+    
+    deleteColor(event) {
+        let colorNumber = Number(event.target.id.slice(-1))
         let theColors = this.state.theColors
         theColors.splice(colorNumber, 1)
-        this.setState( {theColors: theColors, currentColor: 0} )
+        this.setState( {theColors: theColors} )
         //should check to see if you deleted too many colors & accordingly change PRC; plus if length is 1 PR change to false
     }
 
@@ -320,13 +311,6 @@ class App extends React.Component {
     }
 
     render() {
-        let color = this.state.theColors[this.state.currentColor]
-        let colorName = color.name
-        if (colorName==="") {             //not all colors have names ... let's not make this weird
-            colorName = "this color"
-        } else {
-            colorName = `"` + colorName + `"`
-        }
         return (
             <div
                 id="the-div"
@@ -338,16 +322,6 @@ class App extends React.Component {
                 onTouchCancel={this.touchCancel}
             >
                 {this.optionsMenu(this.state.optionsOpen, this.state.theColors)}
-                <dialog id="delete-dialog" ref={this.deleteDialog}>
-                    <form method="dialog">
-                        <h4>Are you sure you want to delete {colorName}????</h4>
-                        <p>r: {color.red} g: {color.green} b: {color.blue}</p>
-                        <menu>
-                            <button value="cancel">cancel</button>
-                            <button id="confirm" value="default" onClick={this.deleteColor}>delete</button>
-                        </menu>
-                    </form>
-                </dialog>
             </div>
         )
     }
