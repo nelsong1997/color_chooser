@@ -232,13 +232,12 @@ class App extends React.Component {
                 let editButton = null;
                 if (!editingColor) {
                     editButton = [
-                        <svg className="edit-button" viewBox="0 0 10 10" onClick={this.editColor}>            {/* this is the pencil icon for editing a color*/}
+                        <svg className="edit-button" viewBox="0 0 10 10" onClick={this.editColor} key={i}>            {/* this is the pencil icon for editing a color*/}
                             <polygon id={i} points="1,9 2,7 8,1 9,2 3,8" style={{fill: "green", stroke: "green", strokeWidth: "1"}}/>
                         </svg>
                     ]
                 }
-
-                if (!editingColor || i!==editingColor) {
+                if (!(editingColor + 1) || i!==editingColor) {
                     colorArray.push(
                         <div key={i} className="color-item">
                             <div className="color-item-inner">
@@ -259,6 +258,7 @@ class App extends React.Component {
                         </div>
                     )
                 } else if (i===editingColor) {
+                    console.log("howdy")
                     colorArray.push(
                         <div key={i}>
                             <div className="color-item">
@@ -299,7 +299,7 @@ class App extends React.Component {
             let pseudoRandomSection;
             if (pseudoRandom) {
                 pseudoRandomSection = [
-                    <div className="options-section">
+                    <div className="options-section" key="0">
                         <label>
                             <input
                                 type="checkbox" name="pseudo-random-check" ref={this.pseudoRandomCheckbox}
