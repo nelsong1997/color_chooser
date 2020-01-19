@@ -11,8 +11,8 @@ class App extends React.Component {
             colorSurfInterval: null,
             resetTimeout: null,
             optionsTimeout: null,
-            hasBeenReset: false,
-            surfingColors: true,
+            hasBeenReset: false, //change to transitioning?
+            surfingColors: true, // change this and below to a single prop in state with string value?
             optionsOpen: false,
             theColors: [
                 {red: 44,  green: 44,  blue: 88,  name: "indigo"},
@@ -25,7 +25,8 @@ class App extends React.Component {
             currentColor: 0,
             pseudoRandom: true,
             pseudoRandomCount: 2,
-            clickMode: "click"
+            clickMode: "click",
+            editingColor: null
         }
 
         this.touchStart = this.touchStart.bind(this);
@@ -40,6 +41,16 @@ class App extends React.Component {
         this.pseudoRandomCheckChange = this.pseudoRandomCheckChange.bind(this);
         this.pseudoRandomCountChange = this.pseudoRandomCountChange.bind(this);
         this.touchStart = this.touchStart.bind(this);
+        this.editColor = this.editColor.bind(this);
+        this.closeEditMenu = this.closeEditMenu.bind(this);
+        this.saveColorEdits = this.saveColorEdits.bind(this);
+
+        this.pseudoRandomCountInput = React.createRef();
+        this.pseudoRandomCheckbox = React.createRef();
+        this.nameInput = React.createRef();
+        this.redInput = React.createRef();
+        this.greenInput = React.createRef();
+        this.blueInput = React.createRef();
     }
 
     componentDidMount() {
@@ -211,65 +222,112 @@ class App extends React.Component {
 
     optionsMenu(optionsOpen, theColors) {
         let pseudoRandom = this.state.pseudoRandom
+        let editingColor = this.state.editingColor
         if (!optionsOpen) {
             return null
         } else {
             let colorArray = []
             let i = 0
             for (let color of theColors) {
-                let redX;
-                if (theColors.length===1) {
-                    redX = [
-                        <svg id={"red-x-" + i} className="red-x" viewBox="0 0 10 10" key="0"></svg> //empty transparent box where x would go--we can't delete our last color!
-                    ]
-                } else {
-                    redX = [
-                        <svg id={"red-x-" + i} className="red-x" viewBox="0 0 10 10" onClick={this.deleteColor} key="0">    {/* this is the x to remove a color*/}
-                            <polygon id={i} points="1,2 2,1 9,8 8,9" style={{fill: "red", stroke: "red", strokeWidth: "1"}}/>
-                            <polygon id={i} points="9,2 8,1 1,8 2,9" style={{fill: "red", stroke: "red", strokeWidth: "1"}} />
+                let editButton = null;
+                if (!editingColor) {
+                    editButton = [
+                        <svg className="edit-button" viewBox="0 0 10 10" onClick={this.editColor}>            {/* this is the pencil icon for editing a color*/}
+                            <polygon id={i} points="1,9 2,7 8,1 9,2 3,8" style={{fill: "green", stroke: "green", strokeWidth: "1"}}/>
                         </svg>
                     ]
                 }
-                colorArray.push(
-                    <div key={i} className="color-item">
-                        <div className="color-item-inner">
-                            <label style={{color: "white"}}><strong>color {i+1}</strong></label>
-                            <svg className="color-box" viewBox="0 0 10 5">                    {/*a little box to show what the color is*/}
-                                <polygon points="0,0 10,0 10,5 0,5" style={{fill: `rgb(${color.red},${color.green},${color.blue})`, stroke: "white", strokeWidth: "1"}}/>
-                            </svg>
-                            <label style={{
-                                color: `rgb(${color.red},${color.green},${color.blue})`,
-                                textShadow: "-1px 0 white, 0 1px white, 1px 0 white, 0 -1px white"
-                            }}>
-                                <strong>{color.name}</strong>
-                            </label>
+
+                if (!editingColor || i!==editingColor) {
+                    colorArray.push(
+                        <div key={i} className="color-item">
+                            <div className="color-item-inner">
+                                <label style={{color: "white"}}><strong>color {i+1}</strong></label>
+                                <svg className="color-box" viewBox="0 0 10 5">                    {/*a little box to show what the color is*/}
+                                    <polygon points="0,0 10,0 10,5 0,5" style={{fill: `rgb(${color.red},${color.green},${color.blue})`, stroke: "white", strokeWidth: "1"}}/>
+                                </svg>
+                                <label style={{
+                                    color: `rgb(${color.red},${color.green},${color.blue})`,
+                                    textShadow: "-1px 0 white, 0 1px white, 1px 0 white, 0 -1px white"
+                                }}>
+                                    <strong>{color.name}</strong>
+                                </label>
+                            </div>
+                            <div className="color-item-inner">
+                                {editButton}
+                            </div>
                         </div>
-                        <div className="color-item-inner">
-                            <svg className="edit-button" viewBox="0 0 10 10" onClick={()=>{}}>            {/* this is the pencil icon for editing a color*/}
-                                <polygon points="1,9 2,7 8,1 9,2 3,8" style={{fill: "green", stroke: "green", strokeWidth: "1"}}/>
-                            </svg>
-                            {redX}
+                    )
+                } else if (i===editingColor) {
+                    colorArray.push(
+                        <div key={i}>
+                            <div className="color-item">
+                                <div className="color-item-inner">
+                                    <svg id={"trash-" + i} className="trash" viewBox="0 0 10 10" onClick={this.deleteColor}>
+                                        <polygon id={i} points="2,9 8,9 8,3 9,3 9,2 8,2 8,1 2,1 2,2 1,2 1,3 2,3" style={{fill: "gray", stroke: "gray", strokeWidth: "1"}}/>
+                                    </svg>
+                                    <label>name: </label>
+                                    <input type="text" id="name-input" placeholder={color.name} ref={this.nameInput}/>
+                                </div>
+                                <div className="color-item-inner">
+                                <svg className="red-x" viewBox="0 0 10 10" onClick={this.closeEditMenu}>    {/* this is the x to close edit menu*/}
+                                        <polygon id={i} points="1,2 2,1 9,8 8,9" style={{fill: "red", stroke: "red", strokeWidth: "1"}}/>
+                                        <polygon id={i} points="9,2 8,1 1,8 2,9" style={{fill: "red", stroke: "red", strokeWidth: "1"}}/>
+                                    </svg>
+                                    <svg id={"save-edits-" + i} className="save-edits" viewBox="0 0 10 8" onClick={this.saveColorEdits}>
+                                        <polygon id={i} points="1,4 2,3 4,5 8,1 9,2 4,7" style={{fill: "green", stroke: "green", strokeWidth: "1"}}/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div className="color-item more-indented">
+                                <div className="color-item-inner">
+                                    <label>r:</label>
+                                    <input type="number" className="num-input" placeholder={color.red} ref={this.redInput}/>
+                                    <label>g:</label>
+                                    <input type="number" className="num-input" placeholder={color.green} ref={this.greenInput}/>
+                                    <label>b:</label>
+                                    <input type="number" className="num-input" placeholder={color.blue} ref={this.blueInput}/>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                )
+                    )
+                }
+
                 i++;
             }
 
-            let pseudoRandomCountSection; //we want to hide this section if PR is disabled
+            let pseudoRandomSection;
             if (pseudoRandom) {
-                pseudoRandomCountSection = [
-                    <label className="indented" key="0"># of excluded colors: 
-                        <input 
-                            type="number" className="num-input" name="pseudo-random-count" //needs a check for posint in range
-                            min="1" max={this.state.theColors.length - 1}
-                            onChange={this.pseudoRandomCountChange} defaultValue="2"
-                        />
-                    </label>
+                pseudoRandomSection = [
+                    <div className="options-section">
+                        <label>
+                            <input
+                                type="checkbox" name="pseudo-random-check" ref={this.pseudoRandomCheckbox}
+                                onChange={this.pseudoRandomCheckChange} defaultChecked
+                            />pseudo randomness
+                        </label>
+                        <label className="indented" key="0"># of excluded colors: 
+                            <input 
+                                type="number" className="num-input" name="pseudo-random-count" //needs a check for posint in range
+                                min="1" max={this.state.theColors.length - 1}
+                                onChange={this.pseudoRandomCountChange} defaultValue={this.state.pseudoRandomCount}
+                                ref={this.pseudoRandomCountInput}
+                            />
+                        </label>
+                    </div>
                 ]
             } else {
-                pseudoRandomCountSection = null;
+                pseudoRandomSection = [
+                    <div className="options-section">
+                        <label>
+                            <input
+                                type="checkbox" name="pseudo-random-check" ref={this.pseudoRandomCheckbox}
+                                onChange={this.pseudoRandomCheckChange}
+                            />pseudo randomness
+                        </label>
+                    </div>
+                ]
             }
-
             return ( 
                 <div id="options-menu">
                     <div id="the-x-div">
@@ -281,19 +339,14 @@ class App extends React.Component {
                     <h1>Options</h1>
                     <h2>Colors</h2>
                     {colorArray}
-                    <div className="options-section">
-                        <label>
-                            <input type="checkbox" name="pseudo-random-check" onChange={this.pseudoRandomCheckChange} defaultChecked/>pseudo randomness
-                        </label>
-                        {pseudoRandomCountSection}
-                    </div>
+                    {pseudoRandomSection}
                 </div>
             )
         }
     }
 
     closeOptions() {
-        this.setState( {optionsOpen: false} )
+        this.setState( {optionsOpen: false, editingColor: null} )
         let black = {
             red: 0,
             green: 0,
@@ -305,9 +358,19 @@ class App extends React.Component {
     deleteColor(event) {
         let colorNumber = Number(event.target.id.slice(-1))
         let theColors = this.state.theColors
+        let pseudoRandom = this.state.pseudoRandom
+        let pseudoRandomCount = this.state.pseudoRandomCount
         theColors.splice(colorNumber, 1)
         this.setState( {theColors: theColors} )
-        //should check to see if you deleted too many colors & accordingly change PRC; plus if length is 1 PR change to false
+        if (theColors.length <= pseudoRandomCount && pseudoRandom) {
+            this.setState( {pseudoRandomCount: theColors.length - 1} )
+            this.pseudoRandomCountInput.current.value = theColors.length - 1
+        }
+        if (theColors.length===1) {
+            this.setState( {pseudoRandom: false} )
+            this.pseudoRandomCheckbox.current.checked = false
+        }
+        this.setState({editingColor: null})
     }
 
     pseudoRandomCheckChange(event) {
@@ -320,6 +383,27 @@ class App extends React.Component {
 
     pseudoRandomCountChange(event) {
         this.setState( {pseudoRandomCount: Number(event.target.value)} )
+    }
+
+    editColor(event) {
+        let colorNumber = Number(event.target.id.slice(-1))
+        this.setState( {editingColor: colorNumber} )
+    }
+
+    closeEditMenu() {
+        this.setState( {editingColor: null} )
+    }
+
+    saveColorEdits(event) {
+        let colorNumber = Number(event.target.id.slice(-1))
+        let theColors = this.state.theColors
+        theColors[colorNumber] = {
+            red: Number(this.redInput.current.value),
+            green: Number(this.greenInput.current.value),
+            blue: Number(this.blueInput.current.value),
+            name: this.nameInput.current.value
+        }
+        this.setState({theColors: theColors, editingColor: null})
     }
 
     render() {
@@ -362,3 +446,4 @@ export default App;
 //      *text display
 //  Xreset function
 //  *cookies to save settings
+//  *weighting

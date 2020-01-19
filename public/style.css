@@ -8,7 +8,7 @@ html, body, #root{
     height: 100%;
 }
 
-#the-x, .red-x, .edit-button {
+#the-x, .red-x, .edit-button, .save-edits, .trash {
     height: 20px;
     width: 20px;
     margin: 5px
@@ -18,10 +18,7 @@ h1, h2, h3, label {
     font-family: "Arial";
     margin-top: 0px;
     color: white;
-}
-
-h4, p {
-    font-family: "Arial"
+    user-select: none;
 }
 
 h1, h2, h3 {
@@ -51,6 +48,7 @@ label {
     align-items: center;
     justify-content: space-between;
     max-width: 400px;
+    height: 30px;
 }
 
 .color-item-inner {
@@ -62,22 +60,6 @@ label {
     width: 40px;
     margin-left: 10px;
     margin-right: 10px;
-}
-
-button {
-    font-family: "Arial";
-    margin: 10px;
-}
-
-form {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-menu {
-    padding: 0px;
-    margin: 0px;
 }
 
 .options-section {
@@ -92,7 +74,22 @@ menu {
     margin-top: 5px;
 }
 
+.more-indented {
+    margin-left: 40px;
+}
+
 .num-input {
     width: 40px;
     margin-left: 5px;
+    margin-right: 8px;
+}
+
+#name-input {
+    width: 150px;
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+.trash {
+    margin-left: 0px;
 }
