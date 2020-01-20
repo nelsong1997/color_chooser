@@ -26,6 +26,7 @@ class App extends React.Component {
             pseudoRandom: true,
             pseudoRandomCount: 2,
             clickMode: "click",
+            editingColorNum: null,
             editingColor: null
         }
 
@@ -44,6 +45,7 @@ class App extends React.Component {
         this.editColor = this.editColor.bind(this);
         this.closeEditMenu = this.closeEditMenu.bind(this);
         this.saveColorEdits = this.saveColorEdits.bind(this);
+        this.colorInputChange = this.colorInputChange.bind(this);
 
         this.pseudoRandomCountInput = React.createRef();
         this.pseudoRandomCheckbox = React.createRef();
@@ -60,25 +62,21 @@ class App extends React.Component {
     mouseDown() {
         if (this.state.clickMode==="click") {
             this.beginClick()
-            console.log("mouse down")
         }
     }
 
     mouseUp() {
         if (this.state.clickMode==="click") {
             this.endClick()
-            console.log("mouse up")
         }
     }
 
     touchStart() {
         this.setState( {clickMode: "touch"} )
-        console.log("touch start")
         this.beginClick()
     }
     
     touchEnd() {
-        console.log("touch end")
         this.endClick()
     }
 
@@ -222,7 +220,7 @@ class App extends React.Component {
 
     optionsMenu(optionsOpen, theColors) {
         let pseudoRandom = this.state.pseudoRandom
-        let editingColor = this.state.editingColor
+        let editingColorNum = this.state.editingColorNum
         if (!optionsOpen) {
             return null
         } else {
@@ -230,14 +228,14 @@ class App extends React.Component {
             let i = 0
             for (let color of theColors) {
                 let editButton = null;
-                if (!editingColor) {
+                if (!editingColorNum) {
                     editButton = [
-                        <svg className="edit-button" viewBox="0 0 10 10" onClick={this.editColor} key={i}>            {/* this is the pencil icon for editing a color*/}
+                        <svg id={"edit-button-" + i} className="edit-button" viewBox="0 0 10 10" onClick={this.editColor} key={i}>            {/* this is the pencil icon for editing a color*/}
                             <polygon id={i} points="1,9 2,7 8,1 9,2 3,8" style={{fill: "green", stroke: "green", strokeWidth: "1"}}/>
                         </svg>
                     ]
                 }
-                if (!(editingColor + 1) || i!==editingColor) {
+                if (!(editingColorNum + 1) || i!==editingColorNum) {
                     colorArray.push(
                         <div key={i} className="color-item">
                             <div className="color-item-inner">
@@ -257,8 +255,7 @@ class App extends React.Component {
                             </div>
                         </div>
                     )
-                } else if (i===editingColor) {
-                    console.log("howdy")
+                } else if (i===editingColorNum) {
                     colorArray.push(
                         <div key={i}>
                             <div className="color-item">
@@ -282,11 +279,20 @@ class App extends React.Component {
                             <div className="color-item more-indented">
                                 <div className="color-item-inner">
                                     <label>r:</label>
-                                    <input type="number" className="num-input" placeholder={color.red} ref={this.redInput}/>
+                                    <input
+                                        id={"red-input-" + i} type="number" min="0" max="255" className="num-input"
+                                        placeholder={color.red} ref={this.redInput} onChange={this.colorInputChange}
+                                    />
                                     <label>g:</label>
-                                    <input type="number" className="num-input" placeholder={color.green} ref={this.greenInput}/>
+                                    <input
+                                        id={"green-input-" + i} type="number" min="0" max="255" className="num-input"
+                                        placeholder={color.green} ref={this.greenInput} onChange={this.colorInputChange}
+                                    />
                                     <label>b:</label>
-                                    <input type="number" className="num-input" placeholder={color.blue} ref={this.blueInput}/>
+                                    <input
+                                        id={"blue-input-" + i} type="number" min="0" max="255" className="num-input"
+                                        placeholder={color.blue} ref={this.blueInput} onChange={this.colorInputChange}
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -306,7 +312,7 @@ class App extends React.Component {
                                 onChange={this.pseudoRandomCheckChange} defaultChecked
                             />pseudo randomness
                         </label>
-                        <label className="indented" key="0"># of excluded colors: 
+                        <label className="indented"># of excluded colors: 
                             <input 
                                 type="number" className="num-input" name="pseudo-random-count" //needs a check for posint in range
                                 min="1" max={this.state.theColors.length - 1}
@@ -346,7 +352,7 @@ class App extends React.Component {
     }
 
     closeOptions() {
-        this.setState( {optionsOpen: false, editingColor: null} )
+        this.setState( {optionsOpen: false, editingColorNum: null} )
         let black = {
             red: 0,
             green: 0,
@@ -370,7 +376,7 @@ class App extends React.Component {
             this.setState( {pseudoRandom: false} )
             this.pseudoRandomCheckbox.current.checked = false
         }
-        this.setState({editingColor: null})
+        this.setState({editingColorNum: null})
     }
 
     pseudoRandomCheckChange(event) {
@@ -382,16 +388,26 @@ class App extends React.Component {
     }
 
     pseudoRandomCountChange(event) {
-        this.setState( {pseudoRandomCount: Number(event.target.value)} )
+        let pseudoRandomCount = this.state.pseudoRandomCount
+        let theInput = Number(event.target.value)
+        let theColors = this.state.theColors
+    
+        if (event.target.value==="") { return
+        } else if (checkIntInRange(theInput, 0, theColors.length)) {
+            this.setState({pseudoRandomCountInput: Number(event.target.value)})
+        } else {
+            this.pseudoRandomCountInput.current.value = pseudoRandomCount
+        }
     }
 
     editColor(event) {
         let colorNumber = Number(event.target.id.slice(-1))
-        this.setState( {editingColor: colorNumber} )
+        let theColors = this.state.theColors
+        this.setState( {editingColorNum: colorNumber, editingColor: theColors[colorNumber]} )
     }
 
     closeEditMenu() {
-        this.setState( {editingColor: null} )
+        this.setState( {editingColorNum: null, editingColor: null} )
     }
 
     saveColorEdits(event) {
@@ -403,7 +419,30 @@ class App extends React.Component {
             blue: Number(this.blueInput.current.value),
             name: this.nameInput.current.value
         }
-        this.setState({theColors: theColors, editingColor: null})
+        this.setState({theColors: theColors, editingColorNum: null})
+    }
+
+    colorInputChange(event) {
+        let editingColor = this.state.editingColor
+        let currentColor = event.target.id.slice(0,3)
+        let inputNum = Number(event.target.value)
+        if (currentColor==="gre") {
+            currentColor = "green"
+        } else if (currentColor==="blu") {
+            currentColor = "blue"
+        }
+
+        if (event.target.value==="") { return 
+        } else if (checkIntInRange(inputNum, -1, 256)) {
+            console.log("howdy")
+            editingColor[currentColor] = inputNum
+            this.setState({editingColor: editingColor})
+        } else {
+            console.log("whoops")
+            if (currentColor==="red") this.redInput.current.value = editingColor.red
+            if (currentColor==="green") this.greenInput.current.value = editingColor.green
+            if (currentColor==="blue") this.blueInput.current.value = editingColor.blue
+        }
     }
 
     render() {
@@ -428,6 +467,20 @@ class App extends React.Component {
 function randomInteger(min, max) {
     let range = max - min + 1
     return Math.floor(range*(Math.random())) + min
+}
+
+function checkIntInRange(input, min, max) { //input as a STRING!!!
+    if (
+        input==="" ||
+        (typeof(input)==="number" &&
+        input%1===0 &&
+        input > min &&          //EXCLUSIVE
+        input < max)
+    ) {
+        return true
+    } else {
+        return false
+    }
 }
 
 export default App;

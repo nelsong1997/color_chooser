@@ -93,3 +93,8 @@ label {
 .trash {
     margin-left: 0px;
 }
+
+.error-message {
+    color: red;
+    margin-top: 5px;
+}
