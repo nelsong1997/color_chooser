@@ -228,14 +228,16 @@ class App extends React.Component {
             let i = 0
             for (let color of theColors) {
                 let editButton = null;
-                if (!editingColorNum) {
+                if (typeof(editingColorNum)!=="number") {
                     editButton = [
-                        <svg id={"edit-button-" + i} className="edit-button" viewBox="0 0 10 10" onClick={this.editColor} key={i}>            {/* this is the pencil icon for editing a color*/}
-                            <polygon id={i} points="1,9 2,7 8,1 9,2 3,8" style={{fill: "green", stroke: "green", strokeWidth: "1"}}/>
-                        </svg>
+                        <button id={"edit-button-" + i} className="square-button" key={i}>
+                            <svg className="edit-svg" id={i} viewBox="0 0 10 10" onClick={this.editColor}>        {/* this is the pencil icon for editing a color*/}
+                                <polygon id={i} points="1,9 2,7 8,1 9,2 3,8" style={{fill: "green", stroke: "green", strokeWidth: "1"}}/>
+                            </svg>
+                        </button>
                     ]
                 }
-                if (!(editingColorNum + 1) || i!==editingColorNum) {
+                if (typeof(editingColorNum)!=="number" || i!==editingColorNum) {
                     colorArray.push(
                         <div key={i} className="color-item">
                             <div className="color-item-inner">
@@ -260,20 +262,26 @@ class App extends React.Component {
                         <div key={i}>
                             <div className="color-item">
                                 <div className="color-item-inner">
-                                    <svg id={"trash-" + i} className="trash" viewBox="0 0 10 10" onClick={this.deleteColor}>
-                                        <polygon id={i} points="2,9 8,9 8,3 9,3 9,2 8,2 8,1 2,1 2,2 1,2 1,3 2,3" style={{fill: "gray", stroke: "gray", strokeWidth: "1"}}/>
-                                    </svg>
+                                    <button id={"trash-" + i} className="square-button">
+                                        <svg id={i} className="trash" viewBox="0 0 10 10" onClick={this.deleteColor}>
+                                            <polygon id={i} points="2,9 8,9 8,3 9,3 9,2 8,2 8,1 2,1 2,2 1,2 1,3 2,3" style={{fill: "gray", stroke: "gray", strokeWidth: "1"}}/>
+                                        </svg>
+                                    </button>
                                     <label>name: </label>
-                                    <input type="text" id="name-input" placeholder={color.name} ref={this.nameInput}/>
+                                    <input type="text" id="name-input" defaultValue={color.name} ref={this.nameInput}/>
                                 </div>
                                 <div className="color-item-inner">
-                                <svg className="red-x" viewBox="0 0 10 10" onClick={this.closeEditMenu}>    {/* this is the x to close edit menu*/}
-                                        <polygon id={i} points="1,2 2,1 9,8 8,9" style={{fill: "red", stroke: "red", strokeWidth: "1"}}/>
-                                        <polygon id={i} points="9,2 8,1 1,8 2,9" style={{fill: "red", stroke: "red", strokeWidth: "1"}}/>
-                                    </svg>
-                                    <svg id={"save-edits-" + i} className="save-edits" viewBox="0 0 10 8" onClick={this.saveColorEdits}>
-                                        <polygon id={i} points="1,4 2,3 4,5 8,1 9,2 4,7" style={{fill: "green", stroke: "green", strokeWidth: "1"}}/>
-                                    </svg>
+                                    <button className="square-button">
+                                        <svg className="red-x" viewBox="0 0 10 10" onClick={this.closeEditMenu}>    {/* this is the x to close edit menu*/}
+                                            <polygon id={i} points="1,2 2,1 9,8 8,9" style={{fill: "red", stroke: "red", strokeWidth: "1"}}/>
+                                            <polygon id={i} points="9,2 8,1 1,8 2,9" style={{fill: "red", stroke: "red", strokeWidth: "1"}}/>
+                                        </svg>
+                                    </button>
+                                    <button id={"save-edits-" + i} className="square-button">
+                                        <svg className="save-edits" id={i} viewBox="0 0 10 8" onClick={this.saveColorEdits}>
+                                            <polygon id={i} points="1,4 2,3 4,5 8,1 9,2 4,7" style={{fill: "green", stroke: "green", strokeWidth: "1"}}/>
+                                        </svg>
+                                    </button>
                                 </div>
                             </div>
                             <div className="color-item more-indented">
@@ -281,17 +289,17 @@ class App extends React.Component {
                                     <label>r:</label>
                                     <input
                                         id={"red-input-" + i} type="number" min="0" max="255" className="num-input"
-                                        placeholder={color.red} ref={this.redInput} onChange={this.colorInputChange}
+                                        defaultValue={color.red} ref={this.redInput} onChange={this.colorInputChange}
                                     />
                                     <label>g:</label>
                                     <input
                                         id={"green-input-" + i} type="number" min="0" max="255" className="num-input"
-                                        placeholder={color.green} ref={this.greenInput} onChange={this.colorInputChange}
+                                        defaultValue={color.green} ref={this.greenInput} onChange={this.colorInputChange}
                                     />
                                     <label>b:</label>
                                     <input
                                         id={"blue-input-" + i} type="number" min="0" max="255" className="num-input"
-                                        placeholder={color.blue} ref={this.blueInput} onChange={this.colorInputChange}
+                                        defaultValue={color.blue} ref={this.blueInput} onChange={this.colorInputChange}
                                     />
                                 </div>
                             </div>
@@ -337,14 +345,22 @@ class App extends React.Component {
             return ( 
                 <div id="options-menu">
                     <div id="the-x-div">
-                        <svg id="the-x" viewBox="0 0 10 10" onClick={this.closeOptions}>                    {/* this is the x to get out of the options*/}
-                            <polygon points="1,2 2,1 9,8 8,9" style={{fill: "white", stroke: "white", strokeWidth: "1"}}/>
-                            <polygon points="9,2 8,1 1,8 2,9" style={{fill: "white", stroke: "white", strokeWidth: "1"}} />
-                        </svg>
+                        <button id="the-x-button" className="square-button">
+                            <svg id="the-x" viewBox="0 0 10 10" onClick={this.closeOptions}>                    {/* this is the x to get out of the options*/}
+                                <polygon points="1,2 2,1 9,8 8,9" style={{fill: "white", stroke: "white", strokeWidth: "1"}}/>
+                                <polygon points="9,2 8,1 1,8 2,9" style={{fill: "white", stroke: "white", strokeWidth: "1"}} />
+                            </svg>
+                        </button>
                     </div>
                     <h1>Options</h1>
                     <h2>Colors</h2>
-                    {colorArray}
+                    <div className="options-section">
+                        {colorArray}
+                        <div id="button-container">
+                            <button className="big-button">add color</button>
+                            <button className="big-button">save preset</button>
+                        </div>
+                    </div>
                     {pseudoRandomSection}
                 </div>
             )
