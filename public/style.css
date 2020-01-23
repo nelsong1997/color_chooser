@@ -134,3 +134,7 @@ h2 {
 svg, polygon {
     user-select: none;
 }
+
+select {
+    max-width: 200px;
+}
