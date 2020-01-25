@@ -22,7 +22,7 @@ class App extends React.Component {
                 {red: 25,  green: 60,  blue: 9,   name: "green" },
                 {red: 49,  green: 115, blue: 198, name: "blue"  }
             ],
-            currentColor: 0,
+            currentColor: null,
             pseudoRandom: true,
             pseudoRandomCount: 2,
             clickMode: "click",
@@ -39,7 +39,11 @@ class App extends React.Component {
                         {red: 49,  green: 115, blue: 198, name: "blue"  }
                     ]
                 }
-            ]
+            ],
+            textDisplay: {
+                name: false,
+                rgb: false
+            }
         }
 
         this.touchStart = this.touchStart.bind(this);
@@ -62,6 +66,7 @@ class App extends React.Component {
         this.presetSelect = this.presetSelect.bind(this);
         this.openNamePreset = this.openNamePreset.bind(this);
         this.savePreset = this.savePreset.bind(this);
+        this.textDisplayCheckChange = this.textDisplayCheckChange.bind(this);
 
         this.pseudoRandomCountInput = React.createRef();
         this.pseudoRandomCheckbox = React.createRef();
@@ -153,7 +158,8 @@ class App extends React.Component {
         this.setState({ //changing the color
             red: theColors[chosenColorIndex].red,
             green: theColors[chosenColorIndex].green,
-            blue: theColors[chosenColorIndex].blue
+            blue: theColors[chosenColorIndex].blue,
+            currentColor: chosenColorIndex
         })
         console.log("color changed to " + theColors[chosenColorIndex].name)
     }
@@ -189,7 +195,7 @@ class App extends React.Component {
 
     resetTimeout() {
         let resetTimeout = setTimeout(() => {
-            this.setState({previousColors: [], hasBeenReset: true}) //reset
+            this.setState({previousColors: [], hasBeenReset: true, currentColor: null}) //reset
             this.surfColors({
                 red: this.state.red,
                 green: this.state.green,
@@ -235,20 +241,22 @@ class App extends React.Component {
         }, 16.67)
     }
 
-    optionsMenu(optionsOpen, theColors) {
-        let pseudoRandom = this.state.pseudoRandom
-        let colorPresets = this.state.colorPresets
-
-        let currentlyEditing = this.state.currentlyEditing
-        let editingColorNum = null;
-        let addingColor = false;
-        let namingPreset = false;
-        if (currentlyEditing.editing==="color") editingColorNum = currentlyEditing.colorNum
-        if (currentlyEditing.editing==="adding color") addingColor = true;
-        if (currentlyEditing.editing==="naming preset") namingPreset = true;
+    optionsMenu(stateObject) {
+        let optionsOpen = stateObject.optionsOpen
         if (!optionsOpen) {
             return null;
         } else {
+            let theColors = stateObject.theColors
+            let pseudoRandom = stateObject.pseudoRandom
+            let colorPresets = stateObject.colorPresets
+            let currentlyEditing = stateObject.currentlyEditing
+            let editingColorNum = null;
+            let addingColor = false;
+            let namingPreset = false;
+            if (currentlyEditing.editing==="color") editingColorNum = currentlyEditing.colorNum
+            if (currentlyEditing.editing==="adding color") addingColor = true;
+            if (currentlyEditing.editing==="naming preset") namingPreset = true;
+
             let colorArray = []
             let i = 0
             for (let color of theColors) {
@@ -337,35 +345,29 @@ class App extends React.Component {
             let pseudoRandomSection;
             if (pseudoRandom) {
                 pseudoRandomSection = [
-                    <div className="options-section" key="0">
-                        <h2>Other</h2>
-                        <label>
-                            <input
-                                type="checkbox" name="pseudo-random-check" ref={this.pseudoRandomCheckbox}
-                                onChange={this.pseudoRandomCheckChange} defaultChecked
-                            />pseudo randomness
-                        </label>
-                        <label className="indented"># of excluded colors: 
-                            <input 
-                                type="number" className="num-input" name="pseudo-random-count" //needs a check for posint in range
-                                min="1" max={this.state.theColors.length - 1}
-                                onChange={this.pseudoRandomCountChange} defaultValue={this.state.pseudoRandomCount}
-                                ref={this.pseudoRandomCountInput}
-                            />
-                        </label>
-                    </div>
+                    <label key="0">
+                        <input
+                            type="checkbox" name="pseudo-random-check" ref={this.pseudoRandomCheckbox}
+                            onChange={this.pseudoRandomCheckChange} defaultChecked={pseudoRandom}
+                        />pseudo randomness
+                    </label>,
+                    <label className="indented" key="1"># of excluded colors: 
+                        <input 
+                            type="number" className="num-input" name="pseudo-random-count" //needs a check for posint in range
+                            min="1" max={this.state.theColors.length - 1}
+                            onChange={this.pseudoRandomCountChange} defaultValue={this.state.pseudoRandomCount}
+                            ref={this.pseudoRandomCountInput}
+                        />
+                    </label>
                 ]
             } else {
                 pseudoRandomSection = [
-                    <div className="options-section">
-                        <h2>Other</h2>
-                        <label>
-                            <input
-                                type="checkbox" name="pseudo-random-check" ref={this.pseudoRandomCheckbox}
-                                onChange={this.pseudoRandomCheckChange}
-                            />pseudo randomness
-                        </label>
-                    </div>
+                    <label key="0">
+                        <input
+                            type="checkbox" name="pseudo-random-check" ref={this.pseudoRandomCheckbox}
+                            onChange={this.pseudoRandomCheckChange} defaultChecked={pseudoRandom}
+                        />pseudo randomness
+                    </label>
                 ]
             }
             let addingColorSection;
@@ -450,8 +452,34 @@ class App extends React.Component {
                 <option value={i} key={i+1}>{colorPresets[i].name}</option>
                 )
             }
+            let textDisplaySection;
+            if (stateObject.textDisplay.name) {
+                textDisplaySection = [
+                    <label key="0">
+                        <input
+                            type="checkbox" name="name-display-check" onChange={this.textDisplayCheckChange}
+                            defaultChecked={stateObject.textDisplay.name}
+                        />display color name
+                    </label>,
+                    <label key="1">
+                    <input
+                        type="checkbox" name="rgb-display-check" className="indented" onChange={this.textDisplayCheckChange}
+                        defaultChecked={stateObject.textDisplay.rgb}
+                    />display rgb values
+                </label>
+                ]
+            } else {
+                textDisplaySection = [
+                    <label key="0">
+                        <input
+                            type="checkbox" name="name-display-check" onChange={this.textDisplayCheckChange}
+                            defaultChecked={stateObject.textDisplay.name}
+                        />display color name
+                    </label>
+                ]
+            }
             return ( 
-                <div id="options-menu">
+                <div id="options-menu" style={{backgroundColor: `rgb(${this.state.red},${this.state.green},${this.state.blue})`}}>
                     <div id="the-x-div">
                         <button id="the-x-button" className="square-button">
                             <svg id="the-x" viewBox="0 0 10 10" onClick={this.closeOptions}>                    {/* this is the x to get out of the options*/}
@@ -471,7 +499,11 @@ class App extends React.Component {
                             {theOptions}
                         </select>
                     </div>
-                    {pseudoRandomSection}
+                    <div className="options-section">
+                        <h2>Other</h2>
+                        {pseudoRandomSection}
+                        {textDisplaySection}
+                    </div>
                 </div>
             )
         }
@@ -607,6 +639,48 @@ class App extends React.Component {
         this.setState({currentlyEditing: {}, colorPresets: colorPresets})
     }
 
+    textDisplayCheckChange(event) {
+        let whatIsChanging = event.target.name.slice(0,4)
+        if (whatIsChanging==="rgb-") whatIsChanging = "rgb"
+        let textDisplay = this.state.textDisplay
+        let newTextDisplay = textDisplay
+        newTextDisplay[whatIsChanging] = !newTextDisplay[whatIsChanging]
+        this.setState({textDisplay: newTextDisplay})
+    }
+
+    textDisplay(stateObject) {
+        let theColor = stateObject.theColors[stateObject.currentColor]
+        let textDisplay = stateObject.textDisplay
+        if (!textDisplay.name) { return null
+        } else if (stateObject.surfingColors) {
+            return (
+                <div id="text-display-outer">
+                    <div id="text-display-inner">
+                        <h1><em>standby</em></h1>
+                    </div>
+                </div>
+            )
+        } else if (!theColor) { return null
+        } else if (textDisplay.name && textDisplay.rgb) {
+            return (
+                <div id="text-display-outer">
+                    <div id="text-display-inner">
+                        <h1><em>{theColor.name}</em></h1>
+                        <h3>r: {theColor.red} g: {theColor.green} b: {theColor.blue}</h3>
+                    </div>
+                </div>
+            )
+        } else if (textDisplay.name && !textDisplay.rgb) {
+            return (
+                <div id="text-display-outer">
+                    <div id="text-display-inner">
+                        <h1><em>{theColor.name}</em></h1>
+                    </div>
+                </div>
+            )
+        }
+    }
+
     render() {
         return (
             <div
@@ -618,7 +692,8 @@ class App extends React.Component {
                 onTouchEnd={this.touchEnd}
                 onTouchCancel={this.touchCancel}
             >
-                {this.optionsMenu(this.state.optionsOpen, this.state.theColors)}
+                {this.optionsMenu(this.state)}
+                {this.textDisplay(this.state)}
             </div>
         )
     }
@@ -649,16 +724,10 @@ export default App;
 
 //----------planned features-------------//
 
-//  Xoptions menu
-//      *help
-//      *custom color rotation
-//      *random color
-//          *random color within range
-//      *show color name
-//      *show color value
-//      *pseudo random toggle
-//          *pseudo random # of previous choices excluded
-//      *text display
-//  Xreset function
+//  options menu
+//      *help 
+//      *random color (?)
+//          *random color within range (?)
+//      *weighting
+//      *counter (esp for no PR)
 //  *cookies to save settings
-//  *weighting
