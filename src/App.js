@@ -14,6 +14,7 @@ class App extends React.Component {
             hasBeenReset: false, //change to transitioning?
             surfingColors: true, // change this and below to a single prop in state with string value?
             optionsOpen: false,
+            optionsOpacity: 0,
             theColors: [
                 {red: 44,  green: 44,  blue: 88,  name: "indigo"},
                 {red: 0,   green: 0,   blue: 0,   name: "black" },
@@ -42,7 +43,9 @@ class App extends React.Component {
             ],
             textDisplay: {
                 name: false,
-                rgb: false
+                rgb: false,
+                countBoolean: false,
+                count: 0
             }
         }
 
@@ -126,6 +129,7 @@ class App extends React.Component {
         let theColors = this.state.theColors
         let pseudoRandom = this.state.pseudoRandom
         let pseudoRandomCount = this.state.pseudoRandomCount
+        let textDisplay = this.state.textDisplay
 
         let availableColors = [] //specifying which colors are viable to choose
         if (pseudoRandom) {
@@ -155,11 +159,14 @@ class App extends React.Component {
             }
         }
 
+        textDisplay.count++
+
         this.setState({ //changing the color
             red: theColors[chosenColorIndex].red,
             green: theColors[chosenColorIndex].green,
             blue: theColors[chosenColorIndex].blue,
-            currentColor: chosenColorIndex
+            currentColor: chosenColorIndex,
+            textDisplay: textDisplay
         })
         console.log("color changed to " + theColors[chosenColorIndex].name)
     }
@@ -195,7 +202,14 @@ class App extends React.Component {
 
     resetTimeout() {
         let resetTimeout = setTimeout(() => {
-            this.setState({previousColors: [], hasBeenReset: true, currentColor: null}) //reset
+            let textDisplay = this.state.textDisplay
+            textDisplay.count = 0
+            this.setState({
+                previousColors: [],
+                hasBeenReset: true,
+                currentColor: null,
+                textDisplay: textDisplay
+            }) //reset
             this.surfColors({
                 red: this.state.red,
                 green: this.state.green,
@@ -228,14 +242,16 @@ class App extends React.Component {
                 this.setState({
                     red: this.state.red - redRate,
                     green: this.state.green - greenRate,
-                    blue: this.state.blue - blueRate
+                    blue: this.state.blue - blueRate,
+                    optionsOpacity: this.state.optionsOpacity + .03333
                 })
             } else {
                 clearInterval(openOptionsInterval)
                 this.setState({
                     red: 0,
                     green: 0, 
-                    blue: 0
+                    blue: 0,
+                    optionsOpacity: 1
                 })
             }
         }, 16.67)
@@ -452,34 +468,8 @@ class App extends React.Component {
                 <option value={i} key={i+1}>{colorPresets[i].name}</option>
                 )
             }
-            let textDisplaySection;
-            if (stateObject.textDisplay.name) {
-                textDisplaySection = [
-                    <label key="0">
-                        <input
-                            type="checkbox" name="name-display-check" onChange={this.textDisplayCheckChange}
-                            defaultChecked={stateObject.textDisplay.name}
-                        />display color name
-                    </label>,
-                    <label key="1">
-                    <input
-                        type="checkbox" name="rgb-display-check" className="indented" onChange={this.textDisplayCheckChange}
-                        defaultChecked={stateObject.textDisplay.rgb}
-                    />display rgb values
-                </label>
-                ]
-            } else {
-                textDisplaySection = [
-                    <label key="0">
-                        <input
-                            type="checkbox" name="name-display-check" onChange={this.textDisplayCheckChange}
-                            defaultChecked={stateObject.textDisplay.name}
-                        />display color name
-                    </label>
-                ]
-            }
             return ( 
-                <div id="options-menu" style={{backgroundColor: `rgb(${this.state.red},${this.state.green},${this.state.blue})`}}>
+                <div id="options-menu" style={{backgroundColor: `rgb(${this.state.red},${this.state.green},${this.state.blue})`, opacity: stateObject.optionsOpacity}}>
                     <div id="the-x-div">
                         <button id="the-x-button" className="square-button">
                             <svg id="the-x" viewBox="0 0 10 10" onClick={this.closeOptions}>                    {/* this is the x to get out of the options*/}
@@ -502,7 +492,24 @@ class App extends React.Component {
                     <div className="options-section">
                         <h2>Other</h2>
                         {pseudoRandomSection}
-                        {textDisplaySection}
+                        <label>
+                            <input
+                                type="checkbox" name="name-display-check" onChange={this.textDisplayCheckChange}
+                                defaultChecked={stateObject.textDisplay.name}
+                            />display color name
+                        </label>
+                        <label>
+                        <input
+                            type="checkbox" name="rgb-display-check" onChange={this.textDisplayCheckChange}
+                            defaultChecked={stateObject.textDisplay.rgb}
+                        />display rgb values
+                        </label>
+                        <label>
+                        <input
+                            type="checkbox" name="count-display-check" onChange={this.textDisplayCheckChange}
+                            defaultChecked={stateObject.textDisplay.rgb}
+                        />display count
+                        </label>
                     </div>
                 </div>
             )
@@ -510,7 +517,7 @@ class App extends React.Component {
     }
 
     closeOptions() {
-        this.setState( {optionsOpen: false, currentlyEditing: {}} )
+        this.setState( {optionsOpen: false, currentlyEditing: {}, optionsOpacity: 0} )
         let black = {
             red: 0,
             green: 0,
@@ -642,6 +649,7 @@ class App extends React.Component {
     textDisplayCheckChange(event) {
         let whatIsChanging = event.target.name.slice(0,4)
         if (whatIsChanging==="rgb-") whatIsChanging = "rgb"
+        if (whatIsChanging==="coun") whatIsChanging = "countBoolean"
         let textDisplay = this.state.textDisplay
         let newTextDisplay = textDisplay
         newTextDisplay[whatIsChanging] = !newTextDisplay[whatIsChanging]
@@ -651,34 +659,56 @@ class App extends React.Component {
     textDisplay(stateObject) {
         let theColor = stateObject.theColors[stateObject.currentColor]
         let textDisplay = stateObject.textDisplay
-        if (!textDisplay.name) { return null
-        } else if (stateObject.surfingColors) {
+
+        let countSection = null
+        let nameSection = null
+        let rgbSection = null
+        let textColor = "white"
+        
+        let standbyName = ""
+        let standbyColors = null
+        if (stateObject.surfingColors) {
+            if (((stateObject.red + stateObject.green + stateObject.blue)/3)>128) textColor = "black" //if the background is light, let's make the text black
+            if (textDisplay.name) standbyName = "standby"
+            if (textDisplay.rgb) standbyColors = <h3 key="0" style={{color: textColor}}>r: {stateObject.red} g: {stateObject.green} b: {stateObject.blue}</h3>
             return (
                 <div id="text-display-outer">
                     <div id="text-display-inner">
-                        <h1><em>standby</em></h1>
+                        <h1 style={{color: textColor}}><em>{standbyName}</em></h1>
+                        {standbyColors}
                     </div>
                 </div>
             )
         } else if (!theColor) { return null
-        } else if (textDisplay.name && textDisplay.rgb) {
-            return (
-                <div id="text-display-outer">
-                    <div id="text-display-inner">
-                        <h1><em>{theColor.name}</em></h1>
-                        <h3>r: {theColor.red} g: {theColor.green} b: {theColor.blue}</h3>
-                    </div>
-                </div>
-            )
-        } else if (textDisplay.name && !textDisplay.rgb) {
-            return (
-                <div id="text-display-outer">
-                    <div id="text-display-inner">
-                        <h1><em>{theColor.name}</em></h1>
-                    </div>
-                </div>
-            )
+        } else if (((theColor.red + theColor.green + theColor.blue)/3)>128) textColor = "black"
+
+        if (textDisplay.countBoolean) {
+            countSection = [
+                <h1 key="0" style={{color: textColor}}>{textDisplay.count}</h1>
+            ]
         }
+        if (textDisplay.name) {
+            nameSection = [
+                <h1 key="0" style={{color: textColor}}><em>{theColor.name}</em></h1>
+            ]
+        }
+        if (textDisplay.rgb) {
+            rgbSection = [
+                <h3 key="0" style={{color: textColor}}>r: {theColor.red} g: {theColor.green} b: {theColor.blue}</h3>
+            ]
+        }
+
+        return (
+            <div id="text-display-outer">
+                <div id="text-display-inner">
+                    {nameSection}
+                    {rgbSection}
+                </div>
+                <div id="text-display-inner">
+                    {countSection}
+                </div>
+            </div>
+        )
     }
 
     render() {
@@ -729,5 +759,4 @@ export default App;
 //      *random color (?)
 //          *random color within range (?)
 //      *weighting
-//      *counter (esp for no PR)
 //  *cookies to save settings
