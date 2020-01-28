@@ -26,6 +26,7 @@ class App extends React.Component {
             currentColor: null,
             pseudoRandom: true,
             pseudoRandomCount: 2,
+            weighting: false,
             clickMode: "click",
             currentlyEditing: {},
             colorPresets: [
@@ -70,6 +71,8 @@ class App extends React.Component {
         this.openNamePreset = this.openNamePreset.bind(this);
         this.savePreset = this.savePreset.bind(this);
         this.textDisplayCheckChange = this.textDisplayCheckChange.bind(this);
+        this.otherOptionChange = this.otherOptionChange.bind(this);
+        this.weightInputChange = this.weightInputChange.bind(this);
 
         this.pseudoRandomCountInput = React.createRef();
         this.pseudoRandomCheckbox = React.createRef();
@@ -78,6 +81,7 @@ class App extends React.Component {
         this.greenInput = React.createRef();
         this.blueInput = React.createRef();
         this.presetSelector = React.createRef();
+        this.weightInput = React.createRef();
     }
 
     componentDidMount() {
@@ -125,22 +129,29 @@ class App extends React.Component {
     }
 
     changeColor() { //needs a way to confirm click registered, particularly when PR is disabled (count? text flash?)
-        let thePreviousColors = this.state.previousColors
-        let theColors = this.state.theColors
+        let thePreviousColors = this.state.previousColors.slice(0, this.state.previousColors.length)
+        let theColors = this.state.theColors.slice(0, this.state.theColors.length)
         let pseudoRandom = this.state.pseudoRandom
         let pseudoRandomCount = this.state.pseudoRandomCount
         let textDisplay = this.state.textDisplay
+        let weighting = this.state.weighting
 
         let availableColors = [] //specifying which colors are viable to choose
-        if (pseudoRandom) {
-            for (let i = 0; i < theColors.length; i++) {
-                if (!thePreviousColors.includes(i)) {
-                    availableColors.push(i)
-                }
+        if (weighting) {
+            for (let color of theColors) {
+                color.weight = color.weight || 1 //some colors might not have weights...if they don't we'll give them the weight 1
             }
         } else {
-            for (let i = 0; i < theColors.length; i++) { //all colors are ok if PR is off
-                availableColors.push(i)
+            for (let color of theColors) {
+                color.weight = 1        //without weighting, every color has weight 1
+            }
+        }
+        if (!pseudoRandom) thePreviousColors = [] //this should already be empty if PR is off, but just in case
+        for (let i = 0; i < theColors.length; i++) {
+            if (!thePreviousColors.includes(i)) {
+                for (let j=0; j<theColors[i].weight; j++) {
+                    availableColors.push(i)
+                }
             }
         }
 
@@ -168,7 +179,6 @@ class App extends React.Component {
             currentColor: chosenColorIndex,
             textDisplay: textDisplay
         })
-        console.log("color changed to " + theColors[chosenColorIndex].name)
     }
 
     surfColors(colorInputObject) {                    //setting up a color shifting wait screen; starts from color that is input, if there is one
@@ -264,33 +274,37 @@ class App extends React.Component {
         } else {
             let theColors = stateObject.theColors
             let pseudoRandom = stateObject.pseudoRandom
+            let weighting = stateObject.weighting
             let colorPresets = stateObject.colorPresets
             let currentlyEditing = stateObject.currentlyEditing
             let editingColorNum = null;
             let addingColor = false;
             let namingPreset = false;
+            let weightingSection = null;
             if (currentlyEditing.editing==="color") editingColorNum = currentlyEditing.colorNum
             if (currentlyEditing.editing==="adding color") addingColor = true;
             if (currentlyEditing.editing==="naming preset") namingPreset = true;
-
             let colorArray = []
             let i = 0
             for (let color of theColors) {
-                let editButton = null;
-                if (!currentlyEditing.editing) { //nothing being edited
-                    editButton = [
-                        <button id={"edit-button-" + i} className="square-button" key={i}>
-                            <svg className="edit-svg" id={i} viewBox="0 0 10 10" onClick={this.editColor}>        {/* this is the pencil icon for editing a color*/}
-                                <polygon id={i} points="1,9 2,7 8,1 9,2 3,8" style={{fill: "green", stroke: "green", strokeWidth: "1"}}/>
-                            </svg>
-                        </button>
+                if (weighting) {
+                    weightingSection = [
+                        <div className="color-item more-indented" key="0">
+                            <div className="color-item-inner">
+                                <label>weight:</label>
+                                <input
+                                    id={"weight-input-" + i} type="number" min="0" className="num-input"
+                                    defaultValue={color.weight || 1} ref={this.weightInput} onChange={this.weightInputChange}
+                                />
+                            </div>
+                        </div>
                     ]
                 }
                 if (currentlyEditing.editing!=="color" || i!==editingColorNum) { //something else is being edited or nothing is being edited
                     colorArray.push(
                         <div key={i} className="color-item">
                             <div className="color-item-inner">
-                                <label style={{color: "white"}}><strong>color {i+1}</strong></label>
+                                <label><strong>color {i+1}</strong></label>
                                 <svg className="color-box" viewBox="0 0 10 5">                    {/*a little box to show what the color is*/}
                                     <polygon points="0,0 10,0 10,5 0,5" style={{fill: `rgb(${color.red},${color.green},${color.blue})`, stroke: "white", strokeWidth: "1"}}/>
                                 </svg>
@@ -302,7 +316,11 @@ class App extends React.Component {
                                 </label>
                             </div>
                             <div className="color-item-inner">
-                                {editButton}
+                                <button id={"edit-button-" + i} className="square-button" key={i}>
+                                    <svg className="edit-svg" id={i} viewBox="0 0 10 10" onClick={this.editColor}>        {/* this is the pencil icon for editing a color*/}
+                                        <polygon id={i} points="1,9 2,7 8,1 9,2 3,8" style={{fill: "green", stroke: "green", strokeWidth: "1"}}/>
+                                    </svg>
+                                </button>
                             </div>
                         </div>
                     )
@@ -352,6 +370,7 @@ class App extends React.Component {
                                     />
                                 </div>
                             </div>
+                            {weightingSection}
                         </div>
                     )
                 }
@@ -388,6 +407,19 @@ class App extends React.Component {
             }
             let addingColorSection;
             if (addingColor) {
+                if (weighting) {
+                    weightingSection = [
+                        <div className="color-item more-indented" key="2">
+                            <div className="color-item-inner">
+                                <label>weight:</label>
+                                <input
+                                    id="weight-input" type="number" min="0" className="num-input"
+                                    defaultValue="1" ref={this.weightInput} onChange={this.weightInputChange}
+                                />
+                            </div>
+                        </div>
+                    ]
+                }
                 addingColorSection = [
                     <div className="color-item" key="0">
                         <div className="color-item-inner">
@@ -426,7 +458,8 @@ class App extends React.Component {
                                 ref={this.blueInput} onChange={this.colorInputChange}
                             />
                         </div>
-                    </div>
+                    </div>,
+                    weightingSection
                 ]
             } else if (namingPreset) {
                 addingColorSection = [
@@ -499,16 +532,22 @@ class App extends React.Component {
                             />display color name
                         </label>
                         <label>
-                        <input
-                            type="checkbox" name="rgb-display-check" onChange={this.textDisplayCheckChange}
-                            defaultChecked={stateObject.textDisplay.rgb}
-                        />display rgb values
+                            <input
+                                type="checkbox" name="rgb-display-check" onChange={this.textDisplayCheckChange}
+                                defaultChecked={stateObject.textDisplay.rgb}
+                            />display rgb values
                         </label>
                         <label>
-                        <input
-                            type="checkbox" name="count-display-check" onChange={this.textDisplayCheckChange}
-                            defaultChecked={stateObject.textDisplay.rgb}
-                        />display count
+                            <input
+                                type="checkbox" name="count-display-check" onChange={this.textDisplayCheckChange}
+                                defaultChecked={stateObject.textDisplay.rgb}
+                            />display count
+                        </label>
+                        <label>
+                            <input
+                                type="checkbox" name="weighting-check" onChange={this.otherOptionChange}
+                                defaultChecked={stateObject.weighting}
+                            />enable weighting of results
                         </label>
                     </div>
                 </div>
@@ -591,30 +630,46 @@ class App extends React.Component {
             red: Number(this.redInput.current.value),
             green: Number(this.greenInput.current.value),
             blue: Number(this.blueInput.current.value),
-            name: this.nameInput.current.value
+            name: this.nameInput.current.value,
+            weight: Number(this.weightInput.current.value)
         }
         this.setState({theColors: theColors, currentlyEditing: {}})
     }
 
     colorInputChange(event) {
         let editingColor = this.state.currentlyEditing.color
-        let editingWhat = this.state.currentlyEditing.editing
+        let editingWhat = this.state.currentlyEditing.editing //need this because this is used for adding color and editing color
         let currentColor = event.target.id.slice(0,3)
+        let colorNum = this.state.currentlyEditing.colorNum
         let inputNum = Number(event.target.value)
         if (currentColor==="gre") {
             currentColor = "green"
         } else if (currentColor==="blu") {
             currentColor = "blue"
         }
+        console.log(event.target.value)
 
         if (event.target.value==="") { return 
         } else if (checkIntInRange(inputNum, -1, 256)) {
             editingColor[currentColor] = inputNum
-            this.setState({currentlyEditing: {editing: editingWhat, color: editingColor}})
+            this.setState({currentlyEditing: {editing: editingWhat, color: editingColor, colorNum: colorNum}})
         } else {
             if (currentColor==="red") this.redInput.current.value = editingColor.red
             if (currentColor==="green") this.greenInput.current.value = editingColor.green
             if (currentColor==="blue") this.blueInput.current.value = editingColor.blue
+        }
+    }
+
+    weightInputChange(event) {
+        let currentlyEditing = this.state.currentlyEditing
+        let inputNum = Number(event.target.value)
+
+        if (event.target.value==="") { return 
+        } else if (inputNum>0 && inputNum%1===0) {
+            currentlyEditing.weight = inputNum
+            this.setState({currentlyEditing: currentlyEditing})
+        } else {
+            this.weightInput.current.value = currentlyEditing.weight
         }
     }
 
@@ -711,6 +766,10 @@ class App extends React.Component {
         )
     }
 
+    otherOptionChange() {
+        this.setState({weighting: !this.state.weighting})
+    }
+
     render() {
         return (
             <div
@@ -753,10 +812,7 @@ function checkIntInRange(input, min, max) { //input as a STRING!!!
 export default App;
 
 //----------planned features-------------//
-
-//  options menu
-//      *help 
-//      *random color (?)
-//          *random color within range (?)
-//      *weighting
+//  *help 
+//  *random color (?)
+//      *random color within range (?)
 //  *cookies to save settings
