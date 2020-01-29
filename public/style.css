@@ -16,7 +16,7 @@ html, body, #root{
 h1, h2, h3, label {
     font-family: "Arial";
     margin-top: 0px;
-    color: white;
+    color: rgb(220, 220, 220);
     user-select: none;
 }
 
@@ -101,14 +101,14 @@ button {
 
 .big-button {
     font-size: 18px;
-    color: white;
+    color: rgb(220,220,220);
     margin-right: 10px;
     padding-left: 10px;
     padding-right: 10px;
 }
 
 .big-button:hover {
-    background-color: white;
+    background-color: rgb(220,220,220);
     color: black;
 }
 
@@ -153,4 +153,8 @@ select {
     align-items: flex-end;
     padding-right: 20px;
     padding-left: 10px;
+}
+
+input, select {
+    background-color: rgb(220, 220, 220);
 }

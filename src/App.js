@@ -1,8 +1,15 @@
 import React from 'react';
+import { instanceOf } from 'prop-types';
+import { withCookies, Cookies } from 'react-cookie';
 
 class App extends React.Component {
-    constructor() {
-        super();
+    static propTypes = {
+        cookies: instanceOf(Cookies).isRequired
+    };
+    constructor(props) {
+        super(props);
+        const { cookies } = props;
+
         this.state = {
             red: 94,
             green: 36,
@@ -15,7 +22,7 @@ class App extends React.Component {
             surfingColors: true, // change this and below to a single prop in state with string value?
             optionsOpen: false,
             optionsOpacity: 0,
-            theColors: [
+            theColors: cookies.get('theColors') || [
                 {red: 44,  green: 44,  blue: 88,  name: "indigo"},
                 {red: 0,   green: 0,   blue: 0,   name: "black" },
                 {red: 158, green: 20,  blue: 20,  name: "red"   },
@@ -24,12 +31,14 @@ class App extends React.Component {
                 {red: 49,  green: 115, blue: 198, name: "blue"  }
             ],
             currentColor: null,
-            pseudoRandom: true,
-            pseudoRandomCount: 2,
-            weighting: false,
+            otherOptions: cookies.get('otherOptions') || {
+                pseudoRandom: true,
+                pseudoRandomCount: 2,
+                weighting: false
+            },
             clickMode: "click",
             currentlyEditing: {},
-            colorPresets: [
+            colorPresets: cookies.get('colorPresets') || [
                 {
                     name: "the captain",
                     colors: [
@@ -42,7 +51,7 @@ class App extends React.Component {
                     ]
                 }
             ],
-            textDisplay: {
+            textDisplay: cookies.get('textDisplay') || {
                 name: false,
                 rgb: false,
                 countBoolean: false,
@@ -243,12 +252,12 @@ class App extends React.Component {
         let initGreen = this.state.green
         let initBlue = this.state.blue
 
-        let redRate = Math.floor(initRed/30) + 1
-        let greenRate = Math.floor(initGreen/30) + 1
-        let blueRate = Math.floor(initBlue/30) + 1
+        let redRate = Math.floor((initRed-20)/30) + 1
+        let greenRate = Math.floor((initGreen-20)/30) + 1
+        let blueRate = Math.floor((initBlue-20)/30) + 1
 
         let openOptionsInterval = setInterval(()=>{
-            if (this.state.red > 0 || this.state.green > 0 || this.state.blue > 0) { //this can result in negative values..reconsider?
+            if (this.state.red > 20 || this.state.green > 20 || this.state.blue > 20) { //this can result in negative values..reconsider?
                 this.setState({
                     red: this.state.red - redRate,
                     green: this.state.green - greenRate,
@@ -258,9 +267,9 @@ class App extends React.Component {
             } else {
                 clearInterval(openOptionsInterval)
                 this.setState({
-                    red: 0,
-                    green: 0, 
-                    blue: 0,
+                    red: 20,
+                    green: 20, 
+                    blue: 20,
                     optionsOpacity: 1
                 })
             }
@@ -273,8 +282,8 @@ class App extends React.Component {
             return null;
         } else {
             let theColors = stateObject.theColors
-            let pseudoRandom = stateObject.pseudoRandom
-            let weighting = stateObject.weighting
+            let pseudoRandom = stateObject.otherOptions.pseudoRandom
+            let weighting = stateObject.otherOptions.weighting
             let colorPresets = stateObject.colorPresets
             let currentlyEditing = stateObject.currentlyEditing
             let editingColorNum = null;
@@ -306,11 +315,11 @@ class App extends React.Component {
                             <div className="color-item-inner">
                                 <label><strong>color {i+1}</strong></label>
                                 <svg className="color-box" viewBox="0 0 10 5">                    {/*a little box to show what the color is*/}
-                                    <polygon points="0,0 10,0 10,5 0,5" style={{fill: `rgb(${color.red},${color.green},${color.blue})`, stroke: "white", strokeWidth: "1"}}/>
+                                    <polygon points="0,0 10,0 10,5 0,5" style={{fill: `rgb(${color.red},${color.green},${color.blue})`, stroke: "rgb(220,220,220)", strokeWidth: "1"}}/>
                                 </svg>
                                 <label style={{
                                     color: `rgb(${color.red},${color.green},${color.blue})`,
-                                    textShadow: "-1px 0 white, 0 1px white, 1px 0 white, 0 -1px white"
+                                    textShadow: "-1px 0 rgb(220,220,220), 0 1px rgb(220,220,220), 1px 0 rgb(220,220,220), 0 -1px rgb(220,220,220)"
                                 }}>
                                     <strong>{color.name}</strong>
                                 </label>
@@ -390,7 +399,7 @@ class App extends React.Component {
                         <input 
                             type="number" className="num-input" name="pseudo-random-count" //needs a check for posint in range
                             min="1" max={this.state.theColors.length - 1}
-                            onChange={this.pseudoRandomCountChange} defaultValue={this.state.pseudoRandomCount}
+                            onChange={this.pseudoRandomCountChange} defaultValue={this.state.otherOptions.pseudoRandomCount}
                             ref={this.pseudoRandomCountInput}
                         />
                     </label>
@@ -501,13 +510,14 @@ class App extends React.Component {
                 <option value={i} key={i+1}>{colorPresets[i].name}</option>
                 )
             }
+
             return ( 
                 <div id="options-menu" style={{backgroundColor: `rgb(${this.state.red},${this.state.green},${this.state.blue})`, opacity: stateObject.optionsOpacity}}>
                     <div id="the-x-div">
                         <button id="the-x-button" className="square-button">
                             <svg id="the-x" viewBox="0 0 10 10" onClick={this.closeOptions}>                    {/* this is the x to get out of the options*/}
-                                <polygon points="1,2 2,1 9,8 8,9" style={{fill: "white", stroke: "white", strokeWidth: "1"}}/>
-                                <polygon points="9,2 8,1 1,8 2,9" style={{fill: "white", stroke: "white", strokeWidth: "1"}} />
+                                <polygon points="1,2 2,1 9,8 8,9" style={{fill: "rgb(220,220,220)", stroke: "rgb(220,220,220)", strokeWidth: "1"}}/>
+                                <polygon points="9,2 8,1 1,8 2,9" style={{fill: "rgb(220,220,220)", stroke: "rgb(220,220,220)", strokeWidth: "1"}} />
                             </svg>
                         </button>
                     </div>
@@ -540,7 +550,7 @@ class App extends React.Component {
                         <label>
                             <input
                                 type="checkbox" name="count-display-check" onChange={this.textDisplayCheckChange}
-                                defaultChecked={stateObject.textDisplay.rgb}
+                                defaultChecked={stateObject.textDisplay.countBoolean}
                             />display count
                         </label>
                         <label>
@@ -556,13 +566,18 @@ class App extends React.Component {
     }
 
     closeOptions() {
+        const { cookies } = this.props;
         this.setState( {optionsOpen: false, currentlyEditing: {}, optionsOpacity: 0} )
-        let black = {
-            red: 0,
-            green: 0,
-            blue: 0
+        let charcoal = {
+            red: 20,
+            green: 20,
+            blue: 20
         }
-        this.surfColors(black)
+        this.surfColors(charcoal)
+        cookies.set('theColors', this.state.theColors, { path: '/' });
+        cookies.set('otherOptions', this.state.otherOptions, { path: '/' });
+        cookies.set('colorPresets', this.state.colorPresets, { path: '/' });
+        cookies.set('textDisplay', this.state.textDisplay, { path: '/' });
     }
     
     deleteColor(event) {
@@ -584,34 +599,38 @@ class App extends React.Component {
     }
 
     pseudoRandomCheckChange(event) {
-        if (event.target.checked) {
-            this.setState( {pseudoRandom: true} )
-        } else {
-            this.setState( {pseudoRandom: false} )
-        }
+        let otherOptions = this.state.otherOptions
+        otherOptions.pseudoRandom = !otherOptions.pseudoRandom
+        this.setState({otherOptions: otherOptions})
     }
 
     pseudoRandomCountChange(event) {
-        let pseudoRandomCount = this.state.pseudoRandomCount
+        let otherOptions = this.state.otherOptions
         let theInput = Number(event.target.value)
         let theColors = this.state.theColors
     
         if (event.target.value==="") { return
         } else if (checkIntInRange(theInput, 0, theColors.length)) {
-            this.setState({pseudoRandomCountInput: Number(event.target.value)})
+            otherOptions.pseudoRandomCount = theInput
+            this.setState({otherOptions: otherOptions})
         } else {
-            this.pseudoRandomCountInput.current.value = pseudoRandomCount
+            this.pseudoRandomCountInput.current.value = otherOptions.pseudoRandomCount
         }
     }
 
     editColor(event) {
+        this.presetSelect.value = ""
         let colorNumber = Number(event.target.id.slice(-1))
-        let theColors = this.state.theColors
+        let theColor = this.state.theColors.slice(0)[colorNumber]
+        let totallyNewObject = {}
+        for (let prop in theColor) {
+            totallyNewObject[prop] = theColor[prop]
+        }
         this.setState({
             currentlyEditing: {
                 editing: "color",
                 colorNum: colorNumber,
-                color: theColors[colorNumber]
+                color: totallyNewObject
             }
         })
     }
@@ -622,41 +641,38 @@ class App extends React.Component {
 
     saveColorEdits(event) {
         let colorNumber = Number(event.target.id.slice(-1))
-        let theColors = this.state.theColors.slice(0, this.state.theColors.length)
+        let colors = this.state.theColors.slice(0, this.state.theColors.length)
+        let theWeight = 1
+        if (this.state.weighting) theWeight = this.weightInput.current.value
         if (event.target.id==="save-new-color") {
-            colorNumber = theColors.length
+            colorNumber = colors.length
         }
-        theColors[colorNumber] = {
+        colors[colorNumber] = {
             red: Number(this.redInput.current.value),
             green: Number(this.greenInput.current.value),
             blue: Number(this.blueInput.current.value),
             name: this.nameInput.current.value,
-            weight: Number(this.weightInput.current.value)
+            weight: theWeight
         }
-        this.setState({theColors: theColors, currentlyEditing: {}})
+        this.setState({theColors: colors.slice(0,colors.length), currentlyEditing: {}})
     }
 
     colorInputChange(event) {
-        let editingColor = this.state.currentlyEditing.color
-        let editingWhat = this.state.currentlyEditing.editing //need this because this is used for adding color and editing color
+        let theColors = this.state.theColors
+        let currentlyEditing = this.state.currentlyEditing
         let currentColor = event.target.id.slice(0,3)
-        let colorNum = this.state.currentlyEditing.colorNum
         let inputNum = Number(event.target.value)
-        if (currentColor==="gre") {
-            currentColor = "green"
-        } else if (currentColor==="blu") {
-            currentColor = "blue"
-        }
-        console.log(event.target.value)
+        if (currentColor==="gre") currentColor = "green"
+        if (currentColor==="blu") currentColor = "blue"
 
         if (event.target.value==="") { return 
         } else if (checkIntInRange(inputNum, -1, 256)) {
-            editingColor[currentColor] = inputNum
-            this.setState({currentlyEditing: {editing: editingWhat, color: editingColor, colorNum: colorNum}})
+            currentlyEditing.color[currentColor] = inputNum
+            this.setState({currentlyEditing: currentlyEditing, theColors: theColors})
         } else {
-            if (currentColor==="red") this.redInput.current.value = editingColor.red
-            if (currentColor==="green") this.greenInput.current.value = editingColor.green
-            if (currentColor==="blue") this.blueInput.current.value = editingColor.blue
+            if (currentColor==="red") this.redInput.current.value = currentlyEditing.color.red
+            if (currentColor==="green") this.greenInput.current.value = currentlyEditing.color.green
+            if (currentColor==="blue") this.blueInput.current.value = currentlyEditing.color.blue
         }
     }
 
@@ -767,7 +783,9 @@ class App extends React.Component {
     }
 
     otherOptionChange() {
-        this.setState({weighting: !this.state.weighting})
+        let otherOptions = this.state.otherOptions
+        otherOptions.weighting = !otherOptions.weighting
+        this.setState({otherOptions: otherOptions})
     }
 
     render() {
@@ -809,9 +827,11 @@ function checkIntInRange(input, min, max) { //input as a STRING!!!
     }
 }
 
-export default App;
+export default withCookies(App);
 
 //----------planned features-------------//
+//
+//  *importing and exporting presets
 //  *help 
 //  *random color (?)
 //      *random color within range (?)
