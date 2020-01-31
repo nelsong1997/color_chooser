@@ -112,7 +112,7 @@ button {
     color: black;
 }
 
-#button-container {
+.button-container {
     margin-top: 5px;
     display: flex;
 }
@@ -137,6 +137,7 @@ svg, polygon {
 
 select {
     max-width: 200px;
+    margin-right: 10px;
 }
 
 #text-display-outer {
@@ -157,4 +158,9 @@ select {
 
 input, select {
     background-color: rgb(220, 220, 220);
+}
+
+textarea {
+    width: 300px;
+    height: 50px;
 }

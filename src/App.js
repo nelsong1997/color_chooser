@@ -34,7 +34,9 @@ class App extends React.Component {
             otherOptions: cookies.get('otherOptions') || {
                 pseudoRandom: true,
                 pseudoRandomCount: 2,
-                weighting: false
+                weighting: false,
+                exporting: false,
+                importing: false,
             },
             clickMode: "click",
             currentlyEditing: {},
@@ -82,6 +84,7 @@ class App extends React.Component {
         this.textDisplayCheckChange = this.textDisplayCheckChange.bind(this);
         this.otherOptionChange = this.otherOptionChange.bind(this);
         this.weightInputChange = this.weightInputChange.bind(this);
+        this.deletePreset = this.deletePreset.bind(this);
 
         this.pseudoRandomCountInput = React.createRef();
         this.pseudoRandomCheckbox = React.createRef();
@@ -91,6 +94,7 @@ class App extends React.Component {
         this.blueInput = React.createRef();
         this.presetSelector = React.createRef();
         this.weightInput = React.createRef();
+        this.importTextArea = React.createRef();
     }
 
     componentDidMount() {
@@ -496,7 +500,7 @@ class App extends React.Component {
                 ]
             } else {
                 addingColorSection = [
-                    <div id="button-container" key="0">
+                    <div className="button-container" key="0">
                         <button className="big-button" onClick={this.openAddColor}>add color</button>
                         <button className="big-button" onClick={this.openNamePreset}>save preset</button>
                     </div>
@@ -507,8 +511,43 @@ class App extends React.Component {
             ]
             for (let i=0; i<colorPresets.length; i++) {
                 theOptions.push(
-                <option value={i} key={i+1}>{colorPresets[i].name}</option>
+                    <option value={i} key={i+1}>{colorPresets[i].name}</option>
                 )
+            }
+            let deletePresetButton = null
+            if (this.presetSelector.current && this.presetSelector.current.value!=="") {
+                deletePresetButton = [
+                    <button className="square-button" key="0">
+                        <svg className="trash" viewBox="0 0 10 10" onClick={this.deletePreset}>
+                            <polygon points="2,9 8,9 8,3 9,3 9,2 8,2 8,1 2,1 2,2 1,2 1,3 2,3" style={{fill: "gray", stroke: "gray", strokeWidth: "1"}}/>
+                        </svg>
+                    </button>
+                ]
+            }
+            
+            let importExportSection = null
+            if (!stateObject.otherOptions.exporting && !stateObject.otherOptions.importing) {
+                importExportSection = [
+                    <div className="button-container" key="0">
+                        <button id="import-button" className="big-button" onClick={this.otherOptionChange}>import presets</button>
+                        <button id="export-button" className="big-button" onClick={this.otherOptionChange}>export presets</button>
+                    </div>
+                ]
+            } else if (stateObject.otherOptions.importing) {
+                importExportSection = [
+                    <textarea key="0" ref={this.importTextArea}/>,
+                    <div className="button-container" key="1">
+                        <button id="confirm-import" className="big-button" onClick={this.otherOptionChange}>confirm import</button>
+                        <button id="import-export-cancel" className="big-button" onClick={this.otherOptionChange}>cancel</button>
+                    </div>
+                ]
+            } else if (stateObject.otherOptions.exporting) {
+                importExportSection = [
+                    <textarea key="0" value={JSON.stringify(this.state.colorPresets)} readOnly/>,
+                    <div className="button-container" key="1">
+                        <button id="import-export-cancel" className="big-button" onClick={this.otherOptionChange}>cancel</button>
+                    </div>
+                ]
             }
 
             return ( 
@@ -528,9 +567,15 @@ class App extends React.Component {
                         {addingColorSection}
                     </div>
                     <div className="options-section">
-                        <select onChange={this.presetSelect} ref={this.presetSelector}>
-                            {theOptions}
-                        </select>
+                        <div className="color-item">
+                            <div className="color-item-inner">
+                                {deletePresetButton}
+                                <select onChange={this.presetSelect} ref={this.presetSelector}>
+                                    {theOptions}
+                                </select>
+                            </div>
+                        </div>
+                        {importExportSection}
                     </div>
                     <div className="options-section">
                         <h2>Other</h2>
@@ -567,7 +612,10 @@ class App extends React.Component {
 
     closeOptions() {
         const { cookies } = this.props;
-        this.setState( {optionsOpen: false, currentlyEditing: {}, optionsOpacity: 0} )
+        let otherOptions = this.state.otherOptions
+        otherOptions.exporting = false
+        otherOptions.importing = false
+        this.setState( {optionsOpen: false, currentlyEditing: {}, optionsOpacity: 0, otherOptions: otherOptions} )
         let charcoal = {
             red: 20,
             green: 20,
@@ -619,7 +667,6 @@ class App extends React.Component {
     }
 
     editColor(event) {
-        this.presetSelect.value = ""
         let colorNumber = Number(event.target.id.slice(-1))
         let theColor = this.state.theColors.slice(0)[colorNumber]
         let totallyNewObject = {}
@@ -696,7 +743,8 @@ class App extends React.Component {
     presetSelect() {
         let input = this.presetSelector.current.value
         if (input==="") return
-        let colorPresets = this.state.colorPresets
+        let colorPresets = []
+        for (let preset of this.state.colorPresets) colorPresets.push(preset)
         let presetNumber = Number(input)
         this.setState({theColors: colorPresets[presetNumber].colors})
     }
@@ -706,8 +754,10 @@ class App extends React.Component {
     }
 
     savePreset() {
-        let colorPresets = this.state.colorPresets.slice(0, this.state.colorPresets.length)
-        let theColors = this.state.theColors.slice(0, this.state.theColors.length)
+        let colorPresets = []
+        let theColors = []
+        for (let preset of this.state.colorPresets) colorPresets.push(preset)
+        for (let color of this.state.theColors) theColors.push(color)
         let presetName = this.nameInput.current.value
         let newColorPreset = {
             name: presetName,
@@ -715,6 +765,15 @@ class App extends React.Component {
         }
         colorPresets.push(newColorPreset)
         this.setState({currentlyEditing: {}, colorPresets: colorPresets})
+    }
+
+    deletePreset() {
+        let presetNum = Number(this.presetSelector.current.value)
+        let colorPresets = []
+        for (let preset of this.state.colorPresets) colorPresets.push(preset)
+        colorPresets.splice(presetNum, 1)
+        this.setState({colorPresets: colorPresets})
+        this.presetSelector.current.value = ""
     }
 
     textDisplayCheckChange(event) {
@@ -782,10 +841,24 @@ class App extends React.Component {
         )
     }
 
-    otherOptionChange() {
+    otherOptionChange(e) {
         let otherOptions = this.state.otherOptions
-        otherOptions.weighting = !otherOptions.weighting
-        this.setState({otherOptions: otherOptions})
+        let combinedPresets = []
+        if (e.target.name==="weighting-check") { otherOptions.weighting = !otherOptions.weighting
+        } else if (e.target.id==="export-button") { otherOptions.exporting = !otherOptions.exporting
+        } else if (e.target.id==="import-button") { otherOptions.importing = !otherOptions.importing
+        } else if (e.target.id==="import-export-cancel") {
+            otherOptions.importing = false
+            otherOptions.exporting = false
+        } else if (e.target.id==="confirm-import") {
+            for (let preset of this.state.colorPresets) combinedPresets.push(preset)
+            let newPresets = JSON.parse(this.importTextArea.current.value)
+            if (typeof(newPresets)==="object" && newPresets.length) { //probably should write a function that can perform a safer and better check
+                for (let preset of newPresets) combinedPresets.push(preset)
+                this.setState({colorPresets: combinedPresets})
+            }
+        }
+        if (e.target.id!=="confirm-import") this.setState({otherOptions: otherOptions})
     }
 
     render() {
@@ -831,8 +904,6 @@ export default withCookies(App);
 
 //----------planned features-------------//
 //
-//  *importing and exporting presets
 //  *help 
 //  *random color (?)
 //      *random color within range (?)
-//  *cookies to save settings
