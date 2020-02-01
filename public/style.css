@@ -18,6 +18,8 @@ h1, h2, h3, label {
     margin-top: 0px;
     color: rgb(220, 220, 220);
     user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
 }
 
 #options-menu {
