@@ -144,10 +144,10 @@ class App extends React.Component {
     changeColor() { //needs a way to confirm click registered, particularly when PR is disabled (count? text flash?)
         let thePreviousColors = this.state.previousColors.slice(0, this.state.previousColors.length)
         let theColors = this.state.theColors.slice(0, this.state.theColors.length)
-        let pseudoRandom = this.state.pseudoRandom
-        let pseudoRandomCount = this.state.pseudoRandomCount
+        let pseudoRandom = this.state.otherOptions.pseudoRandom
+        let pseudoRandomCount = this.state.otherOptions.pseudoRandomCount
         let textDisplay = this.state.textDisplay
-        let weighting = this.state.weighting
+        let weighting = this.state.otherOptions.weighting
 
         let availableColors = [] //specifying which colors are viable to choose
         if (weighting) {
