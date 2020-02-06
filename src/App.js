@@ -900,6 +900,23 @@ function checkIntInRange(input, min, max) { //input as a STRING!!!
     }
 }
 
+function hexStringToColorObject(hexString) { // hexString == 5e2466
+    let upperCaseString = hexString.toUpperCase() // upperCaseString == 5E2466
+    function charToNum(char) {
+        let codeNum = char.charCodeAt(0) //turns a single char into its unicode number
+        if (47 < codeNum && codeNum < 58) { //if it's a digit
+            return codeNum - 48             //=>0-9
+        } else if (64 < codeNum && codeNum < 71) { //if it's an uppercase letter
+            return codeNum - 55             //10-15
+        }
+    }
+    return {                                                                     // { red: 94, green: 36, blue: 102 }
+        red: 16*charToNum(upperCaseString[0]) + charToNum(upperCaseString[1]),   //result.red == 94
+        green: 16*charToNum(upperCaseString[2]) + charToNum(upperCaseString[3]), //result.green == 36
+        blue: 16*charToNum(upperCaseString[4]) + charToNum(upperCaseString[5])   //result.blue == 102
+    }
+}
+
 export default withCookies(App);
 
 //----------planned features-------------//
