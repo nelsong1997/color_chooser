@@ -4,15 +4,18 @@
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^4.2.4",
-    "@testing-library/react": "^9.3.2",
-    "@testing-library/user-event": "^7.1.2",
+    "@testing-library/react": "^9.5.0",
+    "@testing-library/user-event": "^7.2.1",
     "immutable": "^4.0.0-rc.12",
-    "react": "^16.12.0",
+    "react": "^16.13.1",
     "react-cookie": "^4.0.3",
-    "react-dom": "^16.12.0",
-    "react-scripts": "3.3.0"
+    "react-dom": "^16.13.1",
+    "react-scripts": "3.4.0"
   },
+  "homepage": "http://nelsong1997.github.io/color_chooser",
   "scripts": {
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
@@ -32,5 +35,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "gh-pages": "^2.2.0"
   }
 }
