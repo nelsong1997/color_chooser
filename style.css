@@ -1,0 +1,176 @@
+html, body, #root{
+    padding: 0px;
+    margin: 0px;
+    height: 100%;
+}
+
+#the-div {
+    height: 100%;
+}
+
+#the-x, .red-x, .edit-svg, .save-edits, .trash {
+    height: 20px;
+    width: 20px;
+}
+
+h1, h2, h3, label {
+    font-family: "Arial";
+    margin-top: 0px;
+    color: rgb(220, 220, 220);
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer */
+    -khtml-user-select: none; /* KHTML browsers (e.g. Konqueror) */
+}
+
+#options-menu {
+    display: flex;
+    flex-direction: column;
+    max-width: 400px;
+}
+
+#the-x-button {
+    display: flex;
+    flex-direction: row-reverse;
+}
+
+label {
+    font-size: 18px;
+}
+
+.color-item {
+    margin-top: 5px;
+    margin-bottom: 5px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    height: 30px;
+}
+
+.color-item-inner {
+    display: flex;
+    align-items: center;
+}
+
+.color-box {
+    width: 40px;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+.options-section {
+    margin-bottom: 20px;
+    margin-left: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+.indented {
+    margin-left: 20px;
+    margin-top: 5px;
+}
+
+.more-indented {
+    margin-left: 40px;
+}
+
+.num-input {
+    width: 40px;
+    margin-left: 5px;
+    margin-right: 8px;
+}
+
+#name-input {
+    width: 150px;
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+button {
+    background-color: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0px;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer */
+    -khtml-user-select: none; /* KHTML browsers (e.g. Konqueror) */
+}
+
+.square-button {
+    height: 30px;
+    width: 30px;
+    border: none;
+}
+
+.big-button {
+    font-size: 18px;
+    color: rgb(220,220,220);
+    margin-right: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.big-button:hover {
+    background-color: rgb(220,220,220);
+    color: black;
+}
+
+.button-container {
+    margin-top: 5px;
+    display: flex;
+}
+
+#the-x-div {
+    display: flex;
+    flex-direction: row-reverse
+}
+
+h1 {
+    margin-bottom: 15px;
+    margin-left: 10px;
+}
+
+h2 {
+    margin-bottom: 10px;
+}
+
+svg, polygon {
+    user-select: none;
+}
+
+select {
+    max-width: 200px;
+    margin-right: 10px;
+}
+
+#text-display-outer {
+    display: flex;
+    flex-direction: row-reverse;
+    height: 100%;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+#text-display-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    padding-right: 20px;
+    padding-left: 10px;
+}
+
+input, select {
+    background-color: rgb(220, 220, 220);
+}
+
+textarea {
+    width: 300px;
+    height: 50px;
+}
